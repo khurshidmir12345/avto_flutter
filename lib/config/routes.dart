@@ -1,0 +1,24 @@
+import 'package:flutter/material.dart';
+import '../screens/main_screen.dart';
+import '../screens/auth/login_screen.dart';
+import '../screens/auth/register_screen.dart';
+import '../screens/auth/otp_screen.dart';
+import '../screens/listings/create_elon_screen.dart';
+
+class AppRoutes {
+  static const home = '/';
+  static const login = '/login';
+  static const register = '/register';
+  static const otp = '/otp';
+  static const createElon = '/create-elon';
+
+  static Map<String, WidgetBuilder> get routes {
+    return {
+      home: (context) => const MainScreen(),
+      login: (context) => const LoginScreen(),
+      register: (context) => const RegisterScreen(),
+      otp: (context) => const OtpScreen(),
+      createElon: (context) => const CreateElonScreen(),
+    };
+  }
+}
