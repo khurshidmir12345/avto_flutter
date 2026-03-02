@@ -55,7 +55,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       Navigator.pushNamed(
         context,
         AppRoutes.otp,
-        arguments: {'phone': fullPhone},
+        arguments: {
+          'phone': fullPhone,
+          'name': _nameController.text.trim(),
+          'password': _passwordController.text,
+          'password_confirmation': _passwordConfirmController.text,
+        },
       );
     } else {
       showSnackBar(context, result.message, isError: true);

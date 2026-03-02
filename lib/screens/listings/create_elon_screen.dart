@@ -476,7 +476,7 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: AppColors.primaryLight),
         ),
-        child: const Icon(Icons.add, size: 32, color: AppColors.primary),
+        child: Icon(Icons.add, size: 32, color: AppColors.primary),
       ),
     );
   }

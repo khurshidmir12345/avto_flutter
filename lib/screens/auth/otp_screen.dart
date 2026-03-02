@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../config/routes.dart';
@@ -19,20 +20,34 @@ class _OtpScreenState extends State<OtpScreen> {
   final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
   final _apiService = ApiService();
   bool _isLoading = false;
+  bool _isResending = false;
+  bool _didInitArgs = false;
 
   String _phone = '';
+  String _name = '';
+  String _password = '';
+  String _passwordConfirmation = '';
+  int _secondsRemaining = 120;
+  Timer? _timer;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    if (_didInitArgs) return;
     final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     if (args != null) {
-      _phone = args['phone'] as String;
+      _phone = (args['phone'] as String?) ?? '';
+      _name = (args['name'] as String?) ?? '';
+      _password = (args['password'] as String?) ?? '';
+      _passwordConfirmation = (args['password_confirmation'] as String?) ?? '';
     }
+    _didInitArgs = true;
+    _startTimer();
   }
 
   @override
   void dispose() {
+    _timer?.cancel();
     for (final c in _controllers) {
       c.dispose();
     }
@@ -43,6 +58,37 @@ class _OtpScreenState extends State<OtpScreen> {
   }
 
   String get _otpCode => _controllers.map((c) => c.text).join();
+  String get _countdownText {
+    final m = (_secondsRemaining ~/ 60).toString();
+    final s = (_secondsRemaining % 60).toString().padLeft(2, '0');
+    return '$m:$s';
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
+    setState(() => _secondsRemaining = 120);
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_secondsRemaining <= 1) {
+        timer.cancel();
+        setState(() => _secondsRemaining = 0);
+        return;
+      }
+      setState(() => _secondsRemaining -= 1);
+    });
+  }
+
+  void _clearOtpInputs() {
+    for (final c in _controllers) {
+      c.clear();
+    }
+    if (_focusNodes.isNotEmpty) {
+      _focusNodes.first.requestFocus();
+    }
+  }
 
   Future<void> _verifyOtp() async {
     if (_otpCode.length != 4) {
@@ -61,6 +107,28 @@ class _OtpScreenState extends State<OtpScreen> {
     if (result.success) {
       showSnackBar(context, result.message);
       Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (_) => false);
+    } else {
+      showSnackBar(context, result.message, isError: true);
+    }
+  }
+
+  Future<void> _resendCode() async {
+    if (_secondsRemaining > 0 || _isResending) return;
+
+    if (_name.isEmpty || _phone.isEmpty || _password.isEmpty || _passwordConfirmation.isEmpty) {
+      showSnackBar(context, "Qayta yuborish uchun ro'yxatdan o'tishni qayta boshlang", isError: true);
+      return;
+    }
+
+    setState(() => _isResending = true);
+    final result = await _apiService.register(_name, _phone, _password, _passwordConfirmation);
+    if (!mounted) return;
+
+    setState(() => _isResending = false);
+    if (result.success) {
+      _clearOtpInputs();
+      _startTimer();
+      showSnackBar(context, "Kod qayta yuborildi");
     } else {
       showSnackBar(context, result.message, isError: true);
     }
@@ -132,6 +200,26 @@ class _OtpScreenState extends State<OtpScreen> {
                   );
                 }),
               ),
+              const SizedBox(height: 20),
+              Text(
+                "Qayta yuborish: $_countdownText",
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              if (_secondsRemaining == 0)
+                TextButton(
+                  onPressed: _isResending ? null : _resendCode,
+                  child: _isResending
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text("Kodni qayta yuborish"),
+                ),
               const SizedBox(height: 32),
               CustomButton(
                 text: AppStrings.verify,

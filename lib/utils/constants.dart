@@ -1,16 +1,27 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const primary = Color(0xFF8B4513);
-  static const primaryLight = Color(0xFFD2A679);
-  static const secondary = Color(0xFFFFA000);
-  static const background = Color(0xFFFFF8F0);
+  static Color primary = const Color(0xFFA7D98C);
+  static Color primaryLight = const Color(0xFFD9BE8C);
+  static Color secondary = const Color(0xFFCDD98C);
+  static Color background = const Color(0xFFF9F6EE);
   static const surface = Colors.white;
   static const error = Color(0xFFD32F2F);
-  static const success = Color(0xFF388E3C);
-  static const textPrimary = Color(0xFF3E2723);
-  static const textSecondary = Color(0xFF8D6E63);
+  static Color success = const Color(0xFF2E9F58);
+  static Color textPrimary = const Color(0xFF2A2A2A);
+  static Color textSecondary = const Color(0xFF6B6B6B);
   static const cardBg = Colors.white;
+
+  static void applyPreset({
+    required Color primaryColor,
+    required Color primaryLightColor,
+    required Color backgroundColor,
+  }) {
+    primary = primaryColor;
+    primaryLight = primaryLightColor;
+    secondary = Color.lerp(primaryColor, primaryLightColor, 0.5) ?? primaryColor;
+    background = backgroundColor;
+  }
 }
 
 class AppStrings {

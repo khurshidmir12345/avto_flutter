@@ -4,6 +4,7 @@ class StorageService {
   static const _storage = FlutterSecureStorage();
   static const _tokenKey = 'auth_token';
   static const _userKey = 'user_data';
+  static const _themeIdKey = 'theme_id';
 
   static Future<void> saveToken(String token) async {
     await _storage.write(key: _tokenKey, value: token);
@@ -27,5 +28,13 @@ class StorageService {
 
   static Future<void> clearAll() async {
     await _storage.deleteAll();
+  }
+
+  static Future<void> saveThemeId(String id) async {
+    await _storage.write(key: _themeIdKey, value: id);
+  }
+
+  static Future<String?> getThemeId() async {
+    return await _storage.read(key: _themeIdKey);
   }
 }

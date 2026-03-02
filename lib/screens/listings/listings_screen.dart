@@ -236,8 +236,8 @@ class _ListingsScreenState extends State<ListingsScreen> {
 
   Widget _placeholderCell() {
     return Container(
-      color: AppColors.primaryLight.withValues(alpha: 0.2),
-      child: Icon(Icons.directions_car, size: 40, color: AppColors.primaryLight),
+      color: Colors.white,
+      child: const Icon(Icons.directions_car, size: 34, color: Color(0xFFBDBDBD)),
     );
   }
 }

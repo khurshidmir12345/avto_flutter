@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../config/routes.dart';
+import '../../config/theme_controller.dart';
 import '../../models/user_model.dart';
 import '../../services/api_service.dart';
 import '../../utils/constants.dart';
@@ -14,6 +15,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final _apiService = ApiService();
+  final _themeController = ThemeController.instance;
   UserModel? _user;
   bool _isLoading = true;
 
@@ -57,6 +59,129 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } else {
       showSnackBar(context, 'Chiqishda xatolik', isError: true);
     }
+  }
+
+  void _openThemeSettings() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            child: AnimatedBuilder(
+              animation: _themeController,
+              builder: (context, _) {
+                final selectedId = _themeController.currentPreset.id;
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Ilova rangi",
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      "10 ta rangdan birini tanlang (ID bilan)",
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.58,
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        itemCount: _themeController.presets.length,
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 1.35,
+                        ),
+                        itemBuilder: (context, index) {
+                          final preset = _themeController.presets[index];
+                          final isSelected = preset.id == selectedId;
+                          return InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () => _themeController.selectPreset(preset.id),
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isSelected ? preset.primary : Colors.black12,
+                                  width: isSelected ? 2 : 1,
+                                ),
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [preset.primary, preset.primaryLight],
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Container(
+                                        width: 20,
+                                        height: 20,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withValues(alpha: 0.9),
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      if (isSelected)
+                                        const Icon(Icons.check_circle, color: Colors.white),
+                                    ],
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    preset.name,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700,
+                                      shadows: [
+                                        Shadow(
+                                          color: Colors.black38,
+                                          blurRadius: 2,
+                                          offset: Offset(0, 1),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    "ID: ${preset.id}",
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -161,7 +286,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _buildMenuItem(context, icon: Icons.directions_car, title: "Mening e'lonlarim"),
                   _buildMenuItem(context, icon: Icons.favorite_border, title: 'Sevimlilar'),
                   _buildMenuItem(context, icon: Icons.history, title: 'Tarix'),
-                  _buildMenuItem(context, icon: Icons.settings, title: 'Sozlamalar'),
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.settings,
+                    title: 'Sozlamalar',
+                    onTap: _openThemeSettings,
+                  ),
                   _buildMenuItem(context, icon: Icons.info_outline, title: 'Ilova haqida'),
                   const SizedBox(height: 16),
                   SizedBox(
@@ -182,13 +312,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, {required IconData icon, required String title}) {
+  Widget _buildMenuItem(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    VoidCallback? onTap,
+  }) {
     return Card(
       child: ListTile(
         leading: Icon(icon, color: AppColors.primary),
         title: Text(title),
-        trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-        onTap: () {},
+        trailing: Icon(Icons.chevron_right, color: AppColors.textSecondary),
+        onTap: onTap ?? () {},
       ),
     );
   }
