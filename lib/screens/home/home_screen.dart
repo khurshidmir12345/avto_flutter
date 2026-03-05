@@ -4,7 +4,10 @@ import '../../services/categories_service.dart';
 import '../../utils/constants.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.onCategoryTap});
+  const HomeScreen({
+    super.key,
+    required this.onCategoryTap,
+  });
 
   final void Function(int categoryId) onCategoryTap;
 

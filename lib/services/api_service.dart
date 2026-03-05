@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../models/user_model.dart';
 import '../utils/constants.dart';
@@ -110,11 +111,116 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return UserModel.fromJson(data['user']);
+        final userJson = data['user'] as Map<String, dynamic>;
+        // ignore: avoid_print
+        print(
+          '[ApiService.getCurrentUser] avatar_icon=${userJson['avatar_icon']} | avatar_url=${userJson['avatar_url']} | avat_url=${userJson['avat_url']}',
+        );
+        return UserModel.fromJson(userJson);
       }
     } catch (_) {}
 
     return null;
+  }
+
+  // PUT /api/auth/profile
+  Future<({bool success, String message, UserModel? user})> updateProfile(String name) async {
+    try {
+      final headers = await _authHeaders();
+      final response = await http.put(
+        Uri.parse(ApiConstants.updateProfileUrl),
+        headers: headers,
+        body: jsonEncode({'name': name}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        final user = UserModel.fromJson(data['user']);
+        return (success: true, message: data['message'] as String, user: user);
+      }
+
+      final errors = data['errors'] as Map<String, dynamic>?;
+      final errorMsg = errors?.values.first is List
+          ? (errors!.values.first as List).first as String
+          : data['message'] as String;
+      return (success: false, message: errorMsg, user: null);
+    } catch (e) {
+      return (success: false, message: 'Serverga ulanib bo\'lmadi', user: null);
+    }
+  }
+
+  // PUT /api/auth/password
+  Future<({bool success, String message})> changePassword(
+      String currentPassword, String password, String passwordConfirmation) async {
+    try {
+      final headers = await _authHeaders();
+      final response = await http.put(
+        Uri.parse(ApiConstants.changePasswordUrl),
+        headers: headers,
+        body: jsonEncode({
+          'current_password': currentPassword,
+          'password': password,
+          'password_confirmation': passwordConfirmation,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return (success: true, message: data['message'] as String);
+      }
+
+      final errors = data['errors'] as Map<String, dynamic>?;
+      final errorMsg = errors?.values.first is List
+          ? (errors!.values.first as List).first as String
+          : data['message'] as String;
+      return (success: false, message: errorMsg);
+    } catch (e) {
+      return (success: false, message: 'Serverga ulanib bo\'lmadi');
+    }
+  }
+
+  // POST /api/auth/avatar
+  Future<({bool success, String message, UserModel? user})> uploadAvatar(String filePath) async {
+    try {
+      final token = await StorageService.getToken();
+      if (token == null) {
+        return (success: false, message: 'Avval kirish kerak', user: null);
+      }
+
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse(ApiConstants.avatarUploadUrl),
+      );
+      request.headers['Authorization'] = 'Bearer $token';
+      request.headers['Accept'] = 'application/json';
+      request.files.add(await http.MultipartFile.fromPath('avatar', filePath));
+
+      final streamed = await request.send();
+      final response = await http.Response.fromStream(streamed);
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+
+      if (response.statusCode == 200) {
+        final user = UserModel.fromJson(data['user'] as Map<String, dynamic>);
+        final userJson = data['user'] as Map<String, dynamic>;
+        // ignore: avoid_print
+        print(
+          '[ApiService.uploadAvatar] avatar_icon=${userJson['avatar_icon']} | avatar_url=${userJson['avatar_url']} | avat_url=${userJson['avat_url']}',
+        );
+        return (success: true, message: data['message'] as String, user: user);
+      }
+
+      final errors = data['errors'] as Map<String, dynamic>?;
+      final errorMsg = errors?.values.first is List
+          ? (errors!.values.first as List).first as String
+          : (data['message'] as String? ?? 'Xatolik yuz berdi');
+      return (success: false, message: errorMsg, user: null);
+    } on SocketException {
+      return (success: false, message: 'Serverga ulanib bo\'lmadi', user: null);
+    } catch (_) {
+      return (success: false, message: 'Rasm yuklashda xatolik', user: null);
+    }
   }
 
   // POST /api/auth/logout

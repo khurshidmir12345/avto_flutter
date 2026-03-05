@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import '../services/chat_service.dart';
 import 'home/home_screen.dart';
 import 'listings/listings_screen.dart';
 import 'profile/profile_screen.dart';
+import 'chat/chat_list_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -13,6 +15,8 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   int? _selectedCategoryId;
+  int _unreadCount = 0;
+  final _chatService = ChatService();
 
   void _onCategoryTap(int categoryId) {
     setState(() {
@@ -21,7 +25,21 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  final _titles = const ['Asosiy', "E'lonlar", 'Profil'];
+  Future<void> _loadUnreadCount() async {
+    final list = await _chatService.getConversations();
+    if (mounted) {
+      final total = list.fold<int>(0, (sum, c) => sum + c.unreadCount);
+      setState(() => _unreadCount = total);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUnreadCount();
+  }
+
+  final _titles = const ['Asosiy', "E'lonlar", 'Yozishmalar', 'Profil'];
 
   @override
   Widget build(BuildContext context) {
@@ -35,33 +53,73 @@ class _MainScreenState extends State<MainScreen> {
         children: [
           HomeScreen(onCategoryTap: _onCategoryTap),
           ListingsScreen(categoryId: _selectedCategoryId),
+          ChatListScreen(onRefresh: _loadUnreadCount, embeddedInTab: true),
           const ProfileScreen(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        onTap: (index) => setState(() {
-          _currentIndex = index;
-          if (index != 1) _selectedCategoryId = null;
-        }),
-        items: const [
-          BottomNavigationBarItem(
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+            if (index != 1) _selectedCategoryId = null;
+          });
+          if (index == 2) _loadUnreadCount();
+        },
+        items: [
+          const BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
             label: 'Asosiy',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.directions_car_outlined),
             activeIcon: Icon(Icons.directions_car),
             label: "E'lonlar",
           ),
           BottomNavigationBarItem(
+            icon: _buildChatIcon(active: false),
+            activeIcon: _buildChatIcon(active: true),
+            label: 'Chat',
+          ),
+          const BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
             activeIcon: Icon(Icons.person),
             label: 'Profil',
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildChatIcon({required bool active}) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Icon(active ? Icons.chat : Icons.chat_bubble_outline),
+        if (_unreadCount > 0)
+          Positioned(
+            top: -4,
+            right: -4,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
+              constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+              child: Text(
+                _unreadCount > 99 ? '99+' : '$_unreadCount',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

@@ -60,6 +60,9 @@ class ApiConstants {
   static const verifyOtpUrl = '$baseUrl/auth/verify-otp';
   static const userUrl = '$baseUrl/auth/user';
   static const logoutUrl = '$baseUrl/auth/logout';
+  static const changePasswordUrl = '$baseUrl/auth/password';
+  static const updateProfileUrl = '$baseUrl/auth/profile';
+  static const avatarUploadUrl = '$baseUrl/auth/avatar';
 
   static const categoriesUrl = '$baseUrl/categories';
   static const elonlarUrl = '$baseUrl/elonlar';
@@ -70,6 +73,10 @@ class ApiConstants {
   static String elonlarImageDelete(int elonId, int imageId) =>
       '$baseUrl/elonlar/$elonId/images/$imageId';
   static const myElonlarUrl = '$baseUrl/elonlar/my/list';
+
+  static const chatConversationsUrl = '$baseUrl/chat/conversations';
+  static String chatConversationMessages(int id) => '$baseUrl/chat/conversations/$id/messages';
+  static const chatUsersUrl = '$baseUrl/chat/users';
 }
 
 class ElonOptions {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../config/routes.dart';
 import '../../config/theme_controller.dart';
 import '../../models/user_model.dart';
@@ -18,6 +19,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _themeController = ThemeController.instance;
   UserModel? _user;
   bool _isLoading = true;
+  bool _isUploadingAvatar = false;
 
   @override
   void initState() {
@@ -25,13 +27,82 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _loadUser();
   }
 
-  Future<void> _loadUser() async {
+  Future<void> _loadUser({bool showLoading = true}) async {
+    if (showLoading) setState(() => _isLoading = true);
     final user = await _apiService.getCurrentUser();
     if (mounted) {
       setState(() {
         _user = user;
         _isLoading = false;
       });
+    }
+  }
+
+  List<String> _resolveAvatarUrls() {
+    final avatarPath = (_user?.avatarIcon?.trim().isNotEmpty == true)
+        ? _user!.avatarIcon
+        : _user?.avatarUrl;
+    if (avatarPath == null || avatarPath.trim().isEmpty) return [];
+    final raw = avatarPath.trim();
+
+    final urls = <String>[raw];
+    if (raw.contains('/media/')) {
+      final fallback = raw.replaceFirst('/media/', '/storage/media/');
+      if (fallback != raw) {
+        urls.add(fallback);
+      }
+    }
+    return urls;
+  }
+
+  Widget _buildAvatarImage(List<String> urls, int index) {
+    if (index >= urls.length) {
+      return Icon(Icons.person, size: 32, color: AppColors.primary);
+    }
+
+    final url = urls[index];
+    return Image.network(
+      url,
+      width: 64,
+      height: 64,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => _buildAvatarImage(urls, index + 1),
+    );
+  }
+
+  Future<void> _pickAndUploadAvatar() async {
+    if (_isUploadingAvatar) return;
+
+    final picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 95,
+    );
+    if (picked == null) return;
+
+    final ext = picked.path.split('.').last.toLowerCase();
+    const allowed = {'jpeg', 'jpg', 'png', 'webp'};
+    if (!allowed.contains(ext)) {
+      if (!mounted) return;
+      showSnackBar(context, 'Faqat jpeg, jpg, png, webp ruxsat etiladi', isError: true);
+      return;
+    }
+
+    final fileSize = await picked.length();
+    if (fileSize > 10 * 1024 * 1024) {
+      if (!mounted) return;
+      showSnackBar(context, 'Rasm hajmi 10MB dan oshmasligi kerak', isError: true);
+      return;
+    }
+
+    setState(() => _isUploadingAvatar = true);
+    final result = await _apiService.uploadAvatar(picked.path);
+    if (!mounted) return;
+
+    setState(() => _isUploadingAvatar = false);
+    showSnackBar(context, result.message, isError: !result.success);
+
+    if (result.success && result.user != null) {
+      setState(() => _user = result.user);
     }
   }
 
@@ -58,6 +129,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
       Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (_) => false);
     } else {
       showSnackBar(context, 'Chiqishda xatolik', isError: true);
+    }
+  }
+
+  Future<void> _editName() async {
+    final controller = TextEditingController(text: _user?.name ?? '');
+    final formKey = GlobalKey<FormState>();
+
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Ismni tahrirlash'),
+        content: Form(
+          key: formKey,
+          child: TextFormField(
+            controller: controller,
+            autofocus: true,
+            decoration: const InputDecoration(
+              labelText: 'Ism Familiya',
+              prefixIcon: Icon(Icons.person),
+            ),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) return 'Ism kiriting';
+              if (value.trim().length < 2) return 'Kamida 2 ta belgi';
+              if (value.trim().length > 100) return 'Maksimum 100 ta belgi';
+              return null;
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Bekor qilish'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(context, controller.text.trim());
+              }
+            },
+            child: const Text('Saqlash'),
+          ),
+        ],
+      ),
+    );
+
+    if (newName == null || newName == _user?.name) return;
+
+    setState(() => _isLoading = true);
+
+    final result = await _apiService.updateProfile(newName);
+
+    if (!mounted) return;
+
+    setState(() => _isLoading = false);
+
+    showSnackBar(context, result.message, isError: !result.success);
+
+    if (result.success && result.user != null) {
+      setState(() => _user = result.user);
     }
   }
 
@@ -186,41 +316,87 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final avatarUrls = _resolveAvatarUrls();
+    // ignore: avoid_print
+    print('[ProfileScreen] avatar candidates: $avatarUrls');
     return Scaffold(
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSizes.paddingMedium),
-              child: Column(
+          : RefreshIndicator(
+              onRefresh: () => _loadUser(showLoading: false),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(AppSizes.paddingMedium),
+                child: Column(
                 children: [
                   const SizedBox(height: 8),
-                  // Profil rasmi + ism + telefon
                   Row(
                     children: [
-                      CircleAvatar(
-                        radius: 32,
-                        backgroundColor: AppColors.primaryLight.withValues(alpha: 0.3),
-                        child: Icon(Icons.person, size: 32, color: AppColors.primary),
+                      InkWell(
+                        onTap: _pickAndUploadAvatar,
+                        borderRadius: BorderRadius.circular(36),
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            CircleAvatar(
+                              radius: 32,
+                              backgroundColor: AppColors.primaryLight.withValues(alpha: 0.3),
+                              child: _isUploadingAvatar
+                                  ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : ClipOval(
+                                      child: _buildAvatarImage(avatarUrls, 0),
+                                    ),
+                            ),
+                            Positioned(
+                              right: -2,
+                              bottom: -2,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white, width: 1.5),
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt,
+                                  size: 14,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(width: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _user?.name ?? 'Foydalanuvchi',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
-                                ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _user != null ? formatPhone(_user!.phone) : '',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: AppColors.textSecondary,
-                                ),
-                          ),
-                        ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _user?.name ?? 'Foydalanuvchi',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _user != null ? formatPhone(_user!.phone) : '',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: AppColors.textSecondary,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: _user != null ? _editName : null,
+                        icon: Icon(Icons.edit, color: AppColors.primary, size: 20),
+                        tooltip: 'Ismni tahrirlash',
                       ),
                     ],
                   ),
@@ -283,9 +459,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  _buildMenuItem(context, icon: Icons.directions_car, title: "Mening e'lonlarim"),
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.directions_car,
+                    title: "Mening e'lonlarim",
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.myElonlar),
+                  ),
                   _buildMenuItem(context, icon: Icons.favorite_border, title: 'Sevimlilar'),
                   _buildMenuItem(context, icon: Icons.history, title: 'Tarix'),
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.lock_reset,
+                    title: "Parolni o'zgartirish",
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.changePassword),
+                  ),
                   _buildMenuItem(
                     context,
                     icon: Icons.settings,
@@ -309,6 +496,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
+          ),
     );
   }
 

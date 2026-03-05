@@ -2,6 +2,8 @@ class UserModel {
   final int id;
   final String name;
   final String phone;
+  final String? avatarIcon;
+  final String? avatarUrl;
   final String? phoneVerifiedAt;
   final String? createdAt;
   final String? updatedAt;
@@ -10,6 +12,8 @@ class UserModel {
     required this.id,
     required this.name,
     required this.phone,
+    this.avatarIcon,
+    this.avatarUrl,
     this.phoneVerifiedAt,
     this.createdAt,
     this.updatedAt,
@@ -20,6 +24,8 @@ class UserModel {
       id: json['id'] as int,
       name: json['name'] as String,
       phone: json['phone'] as String,
+      avatarIcon: json['avatar_icon'] as String?,
+      avatarUrl: (json['avatar_url'] ?? json['avat_url']) as String?,
       phoneVerifiedAt: json['phone_verified_at'] as String?,
       createdAt: json['created_at'] as String?,
       updatedAt: json['updated_at'] as String?,
@@ -31,6 +37,8 @@ class UserModel {
       'id': id,
       'name': name,
       'phone': phone,
+      'avatar_icon': avatarIcon,
+      'avatar_url': avatarUrl,
       'phone_verified_at': phoneVerifiedAt,
       'created_at': createdAt,
       'updated_at': updatedAt,

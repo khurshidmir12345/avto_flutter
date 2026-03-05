@@ -109,7 +109,7 @@ class _ListingsScreenState extends State<ListingsScreen> {
                       crossAxisCount: 3,
                       mainAxisSpacing: 2,
                       crossAxisSpacing: 2,
-                      childAspectRatio: 1,
+                      childAspectRatio: 1 / 1.3,
                     ),
                     itemCount: _list.length + (_loadingMore ? 3 : 0),
                     itemBuilder: (_, i) {
@@ -170,7 +170,7 @@ class _ListingsScreenState extends State<ListingsScreen> {
         ),
       ),
       child: AspectRatio(
-        aspectRatio: 1,
+        aspectRatio: 1 / 1.3,
         child: Stack(
           fit: StackFit.expand,
           children: [

@@ -6,6 +6,8 @@
 	<string>E'lon rasmlarini tanlash uchun ruxsat kerak</string>
 	<key>NSCameraUsageDescription</key>
 	<string>E'lon rasmlarini olish uchun kamera ruxsati kerak</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Ovozli xabar yuborish uchun mikrofon ruxsati kerak</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

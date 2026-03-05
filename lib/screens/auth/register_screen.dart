@@ -50,7 +50,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (!mounted) return;
 
-    if (result.success) {
+    final messageLower = result.message.toLowerCase();
+    final shouldOpenOtp = result.success ||
+        messageLower.contains('otp') ||
+        (messageLower.contains('kod') && messageLower.contains('yubor'));
+
+    if (shouldOpenOtp) {
       showSnackBar(context, result.message);
       Navigator.pushNamed(
         context,
