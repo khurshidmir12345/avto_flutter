@@ -2,17 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>E'lon rasmlarini tanlash uchun ruxsat kerak</string>
-	<key>NSCameraUsageDescription</key>
-	<string>E'lon rasmlarini olish uchun kamera ruxsati kerak</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Ovozli xabar yuborish uchun mikrofon ruxsati kerak</string>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -37,6 +26,17 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>E'lon rasmlarini olish uchun kamera ruxsati kerak</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Ovozli xabar yuborish uchun mikrofon ruxsati kerak</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>E'lon rasmlarini tanlash uchun ruxsat kerak</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

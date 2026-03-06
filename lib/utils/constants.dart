@@ -49,9 +49,9 @@ class AppSizes {
 }
 
 class ApiConstants {
-  static const baseUrl = 'http://localhost:8080/api';
+  static const baseUrl = 'https://avto.chefit.uz/api';
   /// Rasm URL'lari uchun server manzili (relativ URL bo'lsa)
-  static const imageBaseUrl = 'http://localhost:8080';
+  static const imageBaseUrl = 'https://avto.chefit.uz';
   /// Laravel storage link: '/storage'. API /uploads/... qaytarsa, /storage/uploads/... bo'ladi.
   /// 404 bo'lsa: '' qiling. 403 bo'lsa: backend permissions tekshiring.
   static const imagePathPrefix = '';
