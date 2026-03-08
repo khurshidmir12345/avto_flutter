@@ -1,16 +1,20 @@
 # E'lon rasmlari — Backend sozlamalari
 
 ## Hozirgi holat ✅
-Backend to'liq URL qaytaradi:
+Backend to'liq CDN URL qaytaradi:
 ```
-https://avto.chefit.uz/storage/uploads/...
+https://img.avtovodiy.uz/uploads/1/xxx.jpg
 ```
 
 Flutter ilovasi API dan kelgan URL ni **o'zgartirmasdan** ishlatadi.
 
+## API base URL
+- **Backend API:** https://api.avtovodiy.uz/api
+- **Rasm CDN:** https://img.avtovodiy.uz
+
 ## Tekshirish
 ```bash
 # Rasm URL ishlashini tekshiring
-curl -I "https://avto.chefit.uz/storage/uploads/3/abc123.jpg"
+curl -I "https://img.avtovodiy.uz/uploads/1/xxx.jpg"
 ```
 200 qaytishi kerak.

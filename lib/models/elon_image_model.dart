@@ -16,14 +16,19 @@ class ElonImageModel {
   });
 
   factory ElonImageModel.fromJson(Map<String, dynamic> json) {
-    var url = json['url'] as String? ?? json['full_url'] as String? ?? '';
+    // Yangi format: original, thumb
+    final original = json['original'] as String?;
+    final thumb = json['thumb'] as String?;
+    var url = original ?? thumb ?? json['url'] as String? ?? json['full_url'] as String? ?? '';
     if (url.isNotEmpty && !url.startsWith('http')) {
       final prefix = ApiConstants.imagePathPrefix;
       final path = url.startsWith('/') ? url : '/$url';
       url = '${ApiConstants.imageBaseUrl}$prefix$path';
     }
+    final idRaw = json['id'];
+    final id = idRaw is int ? idRaw : int.tryParse(idRaw?.toString() ?? '0') ?? 0;
     return ElonImageModel(
-      id: json['id'] as int,
+      id: id,
       moshinaElonId: json['moshina_elon_id'] as int?,
       path: json['path'] as String? ?? '',
       url: url,

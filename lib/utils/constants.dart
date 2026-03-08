@@ -49,9 +49,11 @@ class AppSizes {
 }
 
 class ApiConstants {
-  static const baseUrl = 'https://avto.chefit.uz/api';
+  static const baseUrl = 'http://localhost:8080/api';
   /// Rasm URL'lari uchun server manzili (relativ URL bo'lsa)
-  static const imageBaseUrl = 'https://avto.chefit.uz';
+  static const imageBaseUrl = 'http://localhost:8080';
+  /// CDN URL — R2 rasmlari uchun (backend .env IMAGE_CDN_URL)
+  static const imageCdnUrl = 'https://img.avtovodiy.uz';
   /// Laravel storage link: '/storage'. API /uploads/... qaytarsa, /storage/uploads/... bo'ladi.
   /// 404 bo'lsa: '' qiling. 403 bo'lsa: backend permissions tekshiring.
   static const imagePathPrefix = '';
@@ -66,18 +68,24 @@ class ApiConstants {
 
   static const categoriesUrl = '$baseUrl/categories';
   static const elonlarUrl = '$baseUrl/elonlar';
-  static const imagesUploadUrl = '$baseUrl/elonlar/images/upload';
-  static String imageDeleteUrl(int imageId) => '$baseUrl/elonlar/images/$imageId';
+  /// Yangi flow: presigned URL → R2 ga yuklash → save
+  static const imagesPresignedUrl = '$baseUrl/images/presigned-url';
+  static const imagesSaveUrl = '$baseUrl/images/save';
+  static String imageDeleteUrl(int imageId) => '$baseUrl/images/$imageId';
   static String elonlarDetail(int id) => '$baseUrl/elonlar/$id';
   static String elonlarImages(int id) => '$baseUrl/elonlar/$id/images';
   static String elonlarImageDelete(int elonId, int imageId) =>
       '$baseUrl/elonlar/$elonId/images/$imageId';
+  static String elonlarImagesReorder(int id) => '$baseUrl/elonlar/$id/images/reorder';
   static const myElonlarUrl = '$baseUrl/elonlar/my/list';
 
   static const chatConversationsUrl = '$baseUrl/chat/conversations';
   static String chatConversationMessages(int id) => '$baseUrl/chat/conversations/$id/messages';
   static const chatUsersUrl = '$baseUrl/chat/users';
 }
+
+/// Bir e'lon uchun maksimal rasm soni
+const int maxImages = 7;
 
 class ElonOptions {
   static const valyuta = ['USD', 'UZS'];

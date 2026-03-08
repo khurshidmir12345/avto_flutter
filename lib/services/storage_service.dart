@@ -1,8 +1,14 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class StorageService {
-  static const _storage = FlutterSecureStorage();
   static const _tokenKey = 'auth_token';
+
+  static const _storage = FlutterSecureStorage(
+    aOptions: AndroidOptions(resetOnError: true),
+    iOptions: IOSOptions(
+      accessibility: KeychainAccessibility.first_unlock_this_device,
+    ),
+  );
   static const _userKey = 'user_data';
   static const _themeIdKey = 'theme_id';
 
@@ -24,6 +30,12 @@ class StorageService {
 
   static Future<String?> getUserData() async {
     return await _storage.read(key: _userKey);
+  }
+
+  /// Faqat auth ma'lumotlarini o'chiradi (token, user). Theme saqlanadi.
+  static Future<void> clearAuthData() async {
+    await _storage.delete(key: _tokenKey);
+    await _storage.delete(key: _userKey);
   }
 
   static Future<void> clearAll() async {

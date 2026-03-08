@@ -233,7 +233,7 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        await StorageService.clearAll();
+        await StorageService.clearAuthData();
         return true;
       }
     } catch (_) {}

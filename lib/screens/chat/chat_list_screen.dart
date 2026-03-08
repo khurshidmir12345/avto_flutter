@@ -50,7 +50,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
               centerTitle: true,
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.person_add),
+                  icon: const Icon(Icons.person_add_rounded),
                   onPressed: () async {
                     final conv = await Navigator.push<ConversationModel>(
                       context,
@@ -71,7 +71,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 );
                 if (conv != null && mounted) _load();
               },
-              child: const Icon(Icons.person_add),
+              child: const Icon(Icons.person_add_rounded),
               tooltip: 'Yangi chat',
             )
           : null,
@@ -97,7 +97,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.chat_bubble_outline, size: 72, color: AppColors.primaryLight),
+            Icon(Icons.chat_bubble_outline_rounded, size: 72, color: AppColors.primaryLight),
             const SizedBox(height: 24),
             Text(
               'Hozircha yozishmalar yo\'q',

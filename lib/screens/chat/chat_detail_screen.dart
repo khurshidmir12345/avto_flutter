@@ -8,9 +8,11 @@ import '../../models/conversation_model.dart';
 import '../../models/conversation_message_model.dart';
 import '../../services/api_service.dart';
 import '../../services/chat_service.dart';
+import '../../services/media_cache_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/helpers.dart';
 import '../../widgets/auth_network_image.dart';
+import '../../widgets/full_screen_image_viewer.dart';
 
 /// Chat oynasi — matn, rasm, ovozli xabar. Telegram uslubi.
 class ChatDetailScreen extends StatefulWidget {
@@ -43,9 +45,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   @override
   void initState() {
     super.initState();
+    _textController.addListener(_onTextChanged);
     _loadCurrentUser();
     _load();
   }
+
+  void _onTextChanged() => setState(() {});
 
   Future<void> _loadCurrentUser() async {
     final user = await _apiService.getCurrentUser();
@@ -54,6 +59,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   @override
   void dispose() {
+    _textController.removeListener(_onTextChanged);
     _textController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -249,14 +255,20 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: AuthNetworkImage(
-              url: msg.mediaUrl!,
-              width: 200,
-              height: 200,
-              fit: BoxFit.cover,
-              errorWidget: const Icon(Icons.broken_image, size: 48),
+          GestureDetector(
+            onTap: () => FullScreenImageViewer.show(
+              context,
+              urls: [msg.mediaUrl!],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: AuthNetworkImage(
+                url: msg.mediaUrl!,
+                width: 200,
+                height: 200,
+                fit: BoxFit.cover,
+                errorWidget: const Icon(Icons.broken_image, size: 48),
+              ),
             ),
           ),
           if (msg.body != null && msg.body!.isNotEmpty) ...[
@@ -268,7 +280,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
 
     if (msg.isVoice && msg.mediaUrl != null) {
-      return _VoiceMessagePlayer(url: msg.mediaUrl!, isMe: isMe);
+      return _VoiceMessagePlayer(
+        url: msg.mediaUrl!,
+        isMe: isMe,
+        createdAt: msg.createdAt,
+      );
     }
 
     return Text(
@@ -278,6 +294,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   }
 
   Widget _buildInputBar() {
+    final hasText = _textController.text.trim().isNotEmpty;
+
     return Container(
       padding: EdgeInsets.only(
         left: 12,
@@ -290,32 +308,26 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4, offset: const Offset(0, -2))],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          IconButton(
-            icon: Icon(Icons.image, color: AppColors.primary),
+          _buildCircleButton(
+            icon: Icons.attach_file_rounded,
             onPressed: _sending ? null : _pickAndSendImage,
             tooltip: 'Rasm',
           ),
-          IconButton(
-            icon: Icon(
-              _recording ? Icons.stop : Icons.mic,
-              color: _recording ? AppColors.error : AppColors.primary,
-            ),
-            onPressed: _sending ? null : _toggleRecording,
-            tooltip: _recording ? 'To\'xtatish' : 'Ovozli xabar',
-          ),
+          const SizedBox(width: 8),
           Expanded(
             child: TextField(
               controller: _textController,
               decoration: InputDecoration(
-                hintText: 'Xabar yozing...',
+                hintText: 'Xabar',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
                 fillColor: Colors.grey.shade100,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
               maxLines: 4,
               minLines: 1,
@@ -324,24 +336,81 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          IconButton(
-            icon: _sending
-                ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
-                : Icon(Icons.send, color: AppColors.primary),
-            onPressed: _sending ? null : _sendText,
-            tooltip: 'Yuborish',
-          ),
+          if (hasText)
+            _buildCircleButton(
+              icon: Icons.send_rounded,
+              onPressed: _sending ? null : _sendText,
+              tooltip: 'Yuborish',
+              isPrimary: true,
+              loading: _sending,
+            )
+          else
+            _buildCircleButton(
+              icon: _recording ? Icons.stop_rounded : Icons.mic_rounded,
+              onPressed: _sending ? null : _toggleRecording,
+              tooltip: _recording ? 'To\'xtatish' : 'Ovozli xabar',
+              isRecording: _recording,
+            ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCircleButton({
+    required IconData icon,
+    VoidCallback? onPressed,
+    required String tooltip,
+    bool isPrimary = false,
+    bool loading = false,
+    bool isRecording = false,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: isRecording
+                ? AppColors.error.withValues(alpha: 0.15)
+                : isPrimary
+                    ? AppColors.primary
+                    : Colors.grey.shade200,
+            shape: BoxShape.circle,
+          ),
+          child: loading
+              ? const Center(
+                  child: SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  ),
+                )
+              : Icon(
+                  icon,
+                  size: 22,
+                  color: isPrimary || isRecording
+                      ? (isRecording ? AppColors.error : Colors.white)
+                      : AppColors.textSecondary,
+                ),
+        ),
       ),
     );
   }
 }
 
 class _VoiceMessagePlayer extends StatefulWidget {
-  const _VoiceMessagePlayer({required this.url, required this.isMe});
+  const _VoiceMessagePlayer({
+    required this.url,
+    required this.isMe,
+    this.createdAt,
+  });
 
   final String url;
   final bool isMe;
+  final String? createdAt;
 
   @override
   State<_VoiceMessagePlayer> createState() => _VoiceMessagePlayerState();
@@ -350,6 +419,64 @@ class _VoiceMessagePlayer extends StatefulWidget {
 class _VoiceMessagePlayerState extends State<_VoiceMessagePlayer> {
   final _player = AudioPlayer();
   bool _playing = false;
+  String? _cachedPath;
+  bool _loading = false;
+  bool _error = false;
+  Duration _duration = Duration.zero;
+  Duration _position = Duration.zero;
+
+  String get _formatTime => '${_position.inMinutes}:${(_position.inSeconds % 60).toString().padLeft(2, '0')}';
+
+  String _formatCreatedAt(String? iso) {
+    if (iso == null) return '';
+    try {
+      final dt = DateTime.parse(iso);
+      final hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
+      final min = dt.minute.toString().padLeft(2, '0');
+      final ampm = dt.hour >= 12 ? 'PM' : 'AM';
+      return '$hour:$min $ampm';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCached();
+    _player.onPlayerComplete.listen((_) {
+      if (mounted) {
+        setState(() {
+          _playing = false;
+          _position = Duration.zero;
+        });
+      }
+    });
+    _player.onPlayerStateChanged.listen((state) {
+      if (mounted && state == PlayerState.stopped) setState(() => _playing = false);
+    });
+    _player.onDurationChanged.listen((d) {
+      if (mounted) setState(() => _duration = d);
+    });
+    _player.onPositionChanged.listen((p) {
+      if (mounted) setState(() => _position = p);
+    });
+  }
+
+  Future<void> _loadCached() async {
+    setState(() => _loading = true);
+    final path = await MediaCacheService.instance.getCachedPath(
+      widget.url,
+      forceExtension: 'm4a',
+    );
+    if (mounted) {
+      setState(() {
+        _cachedPath = path;
+        _loading = false;
+        _error = path == null;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -358,47 +485,132 @@ class _VoiceMessagePlayerState extends State<_VoiceMessagePlayer> {
   }
 
   Future<void> _togglePlay() async {
+    if (_loading) return;
+
+    if (_error) {
+      await _loadCached();
+      if (_error) return;
+    }
+
     if (_playing) {
       await _player.stop();
-    } else {
-      await _player.play(UrlSource(widget.url));
+      setState(() => _playing = false);
+      return;
     }
-    setState(() => _playing = !_playing);
-  }
 
-  @override
-  void initState() {
-    super.initState();
-    _player.onPlayerComplete.listen((_) {
-      if (mounted) setState(() => _playing = false);
-    });
-    _player.onPlayerStateChanged.listen((state) {
-      if (mounted && state == PlayerState.stopped) setState(() => _playing = false);
-    });
+    try {
+      if (_cachedPath != null) {
+        final file = File(_cachedPath!);
+        if (await file.exists() && await file.length() > 0) {
+          await _player.play(DeviceFileSource(_cachedPath!));
+          if (mounted) setState(() => _playing = true);
+        } else {
+          if (mounted) setState(() => _error = true);
+        }
+      } else if (!widget.url.contains('/api/chat/media/')) {
+        await _player.play(UrlSource(widget.url));
+        if (mounted) setState(() => _playing = true);
+      } else {
+        if (mounted) setState(() => _error = true);
+      }
+    } catch (e) {
+      if (mounted) setState(() => _error = true);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final fg = widget.isMe ? Colors.white : Colors.black87;
+    final fgSecondary = widget.isMe ? Colors.white70 : Colors.black54;
+
     return InkWell(
-      onTap: _togglePlay,
-      borderRadius: BorderRadius.circular(8),
+      onTap: _loading ? null : _togglePlay,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: widget.isMe ? Colors.white24 : Colors.black12,
+                shape: BoxShape.circle,
+              ),
+              child: _loading
+                  ? Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: fg),
+                      ),
+                    )
+                  : Icon(
+                      _playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                      color: fg,
+                      size: 28,
+                    ),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildWaveform(fg),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _playing ? _formatTime : (_duration.inSeconds > 0 ? '${_duration.inMinutes}:${(_duration.inSeconds % 60).toString().padLeft(2, '0')}' : '0:00'),
+                      style: TextStyle(fontSize: 12, color: fgSecondary),
+                    ),
+                    if (widget.createdAt != null) ...[
+                      const SizedBox(width: 12),
+                      Text(
+                        _formatCreatedAt(widget.createdAt),
+                        style: TextStyle(fontSize: 11, color: fgSecondary),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(Icons.done_all, size: 14, color: fgSecondary),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWaveform(Color color) {
+    const barCount = 24;
+    final baseHeights = List.generate(barCount, (i) {
+      final r = (i * 13) % 5 + 2;
+      return 6.0 + r * 2.5;
+    });
+
+    return SizedBox(
+      height: 28,
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            _playing ? Icons.stop : Icons.play_arrow,
-            color: widget.isMe ? Colors.white : Colors.black54,
-            size: 28,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            _playing ? 'To\'xtatish' : 'Ovozli xabar',
-            style: TextStyle(
-              color: widget.isMe ? Colors.white : Colors.black87,
-              fontSize: 14,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: List.generate(barCount, (i) {
+          final offset = _playing ? ((_position.inMilliseconds ~/ 80) + i) % 5 : 0;
+          final h = baseHeights[(i + offset) % barCount];
+          return Container(
+            width: 2.5,
+            height: h.clamp(4.0, 22.0),
+            margin: const EdgeInsets.symmetric(horizontal: 1),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.85),
+              borderRadius: BorderRadius.circular(1.5),
             ),
-          ),
-        ],
+          );
+        }),
       ),
     );
   }

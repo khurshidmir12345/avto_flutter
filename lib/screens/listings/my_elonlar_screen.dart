@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../config/routes.dart';
 import '../../models/elon_model.dart';
@@ -189,10 +190,11 @@ class _MyElonlarScreenState extends State<MyElonlarScreen> {
             Expanded(
               flex: 3,
               child: imageUrl != null
-                  ? Image.network(
-                      imageUrl,
+                  ? CachedNetworkImage(
+                      imageUrl: imageUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _placeholder(),
+                      placeholder: (_, __) => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                      errorWidget: (_, __, ___) => _placeholder(),
                     )
                   : _placeholder(),
             ),

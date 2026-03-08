@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../screens/main_screen.dart';
+import '../screens/auth/auth_check_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/auth/otp_screen.dart';
@@ -10,6 +11,7 @@ import '../screens/profile/change_password_screen.dart';
 
 class AppRoutes {
   static const home = '/';
+  static const authCheck = '/auth-check';
   static const login = '/login';
   static const register = '/register';
   static const otp = '/otp';
@@ -20,6 +22,7 @@ class AppRoutes {
 
   static Map<String, WidgetBuilder> get routes {
     return {
+      authCheck: (context) => const AuthCheckScreen(),
       home: (context) => const MainScreen(),
       login: (context) => const LoginScreen(),
       register: (context) => const RegisterScreen(),

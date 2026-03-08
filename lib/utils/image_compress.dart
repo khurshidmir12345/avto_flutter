@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 
-/// Rasmlarni 20MB dan kichik qiladi — backend limitiga mos
-const int _maxBytes = 20 * 1024 * 1024; // 20MB
+/// Rasm maksimal hajmi (10MB) — backend limitiga mos
+const int maxImageBytes = 10 * 1024 * 1024;
+
+const int _maxBytes = maxImageBytes;
 const int _maxWidth = 1920;
 const int _quality = 80;
 

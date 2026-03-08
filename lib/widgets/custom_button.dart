@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool isLoading;
   final bool isOutlined;
   final String? loadingText;
@@ -10,7 +10,7 @@ class CustomButton extends StatelessWidget {
   const CustomButton({
     super.key,
     required this.text,
-    required this.onPressed,
+    this.onPressed,
     this.isLoading = false,
     this.isOutlined = false,
     this.loadingText,
@@ -22,7 +22,7 @@ class CustomButton extends StatelessWidget {
       return SizedBox(
         width: double.infinity,
         child: OutlinedButton(
-          onPressed: isLoading ? null : onPressed,
+          onPressed: (isLoading || onPressed == null) ? null : onPressed,
           child: _buildChild(context),
         ),
       );
@@ -31,7 +31,7 @@ class CustomButton extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
+        onPressed: (isLoading || onPressed == null) ? null : onPressed,
         child: _buildChild(context),
       ),
     );

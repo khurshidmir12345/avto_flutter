@@ -28,7 +28,7 @@ class _AvtoVodiyAppState extends State<AvtoVodiyApp> {
         title: AppStrings.appName,
         theme: AppTheme.lightTheme(_themeController.currentPreset),
         debugShowCheckedModeBanner: false,
-        initialRoute: AppRoutes.login,
+        initialRoute: AppRoutes.authCheck,
         routes: AppRoutes.routes,
       ),
     );

@@ -1,8 +1,13 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '../../models/conversation_model.dart';
 import '../../models/elon_model.dart';
+import '../../services/chat_service.dart';
 import '../../services/elonlar_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/helpers.dart';
+import '../../widgets/full_screen_image_viewer.dart';
+import '../chat/chat_detail_screen.dart';
 
 class ElonDetailScreen extends StatefulWidget {
   const ElonDetailScreen({super.key, required this.elonId});
@@ -15,9 +20,11 @@ class ElonDetailScreen extends StatefulWidget {
 
 class _ElonDetailScreenState extends State<ElonDetailScreen> {
   final _elonlarService = ElonlarService();
+  final _chatService = ChatService();
   ElonModel? _elon;
   bool _loading = true;
   int _currentImageIndex = 0;
+  bool _openingChat = false;
 
   @override
   void initState() {
@@ -33,6 +40,13 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
         _elon = elon;
         _loading = false;
       });
+      if (elon != null && elon.images.isNotEmpty) {
+        for (final img in elon.images) {
+          if (img.url.isNotEmpty) {
+            precacheImage(CachedNetworkImageProvider(img.url), context);
+          }
+        }
+      }
     }
   }
 
@@ -121,11 +135,22 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
             onPageChanged: (i) => setState(() => _currentImageIndex = i),
             itemBuilder: (_, i) {
               final img = elon.images[i];
-              return Image.network(
-                img.url,
-                fit: BoxFit.cover,
-                width: double.infinity,
-                errorBuilder: (_, e, s) => _placeholderImage(),
+              return GestureDetector(
+                onTap: () => FullScreenImageViewer.show(
+                  context,
+                  urls: elon.images.map((e) => e.url).toList(),
+                  initialIndex: i,
+                ),
+                child: CachedNetworkImage(
+                  imageUrl: img.url,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  placeholder: (_, __) => Container(
+                    color: AppColors.primaryLight.withValues(alpha: 0.2),
+                    child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                  ),
+                  errorWidget: (_, __, ___) => _placeholderImage(),
+                ),
               );
             },
           ),
@@ -259,7 +284,39 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
     );
   }
 
+  Future<void> _openChat(ElonModel elon) async {
+    final userId = elon.userId;
+    if (userId == null || _openingChat) return;
+
+    setState(() => _openingChat = true);
+    final result = await _chatService.createConversation(userId);
+    if (!mounted) return;
+    setState(() => _openingChat = false);
+
+    if (result.success && result.conversation != null) {
+      final otherUser = ChatUserModel(
+        id: userId,
+        name: elon.ownerName ?? 'E\'lon egasi',
+        phone: elon.ownerPhone ?? elon.telefon,
+        avatarUrl: elon.ownerAvatarUrl,
+      );
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ChatDetailScreen(
+            conversationId: result.conversation!.id,
+            otherUser: otherUser,
+          ),
+        ),
+      );
+    } else {
+      showSnackBar(context, 'Chat ochilmadi', isError: true);
+    }
+  }
+
   Widget _buildContactSection(ElonModel elon) {
+    final canChat = elon.userId != null;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSizes.paddingMedium),
@@ -285,29 +342,95 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
                 ),
           ),
           const SizedBox(height: 8),
-          Text(
-            formatPhone(elon.telefon),
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: () => launchPhone(elon.telefon),
-              icon: const Icon(Icons.phone, size: 20),
-              label: const Text('Qo\'ng\'iroq qilish'),
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppSizes.borderRadius),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  formatPhone(elon.telefon),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
                 ),
               ),
-            ),
+              if (canChat)
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: _openingChat ? null : () => _openChat(elon),
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: _openingChat
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Icon(
+                              Icons.chat_bubble_outline_rounded,
+                              color: AppColors.primary,
+                              size: 24,
+                            ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: () => launchPhone(elon.telefon),
+                  icon: const Icon(Icons.phone_rounded, size: 20),
+                  label: const Text('Qo\'ng\'iroq qilish'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+              if (canChat) ...[
+                const SizedBox(width: 12),
+                OutlinedButton.icon(
+                  onPressed: _openingChat ? null : () => _openChat(elon),
+                  icon: Icon(
+                    Icons.chat_bubble_outline_rounded,
+                    size: 20,
+                    color: AppColors.primary,
+                  ),
+                  label: Text(
+                    'Xabar',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: BorderSide(color: AppColors.primary.withValues(alpha: 0.6)),
+                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
         ],
       ),

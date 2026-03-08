@@ -3,6 +3,9 @@ import 'elon_image_model.dart';
 class ElonModel {
   final int id;
   final int? userId;
+  final String? ownerName;
+  final String? ownerPhone;
+  final String? ownerAvatarUrl;
   final String marka;
   final String? model;
   final int yil;
@@ -26,6 +29,9 @@ class ElonModel {
   const ElonModel({
     required this.id,
     this.userId,
+    this.ownerName,
+    this.ownerPhone,
+    this.ownerAvatarUrl,
     required this.marka,
     this.model,
     required this.yil,
@@ -54,6 +60,9 @@ class ElonModel {
     return ElonModel(
       id: json['id'] as int,
       userId: user?['id'] as int? ?? json['user_id'] as int?,
+      ownerName: user?['name'] as String?,
+      ownerPhone: user?['phone'] as String?,
+      ownerAvatarUrl: user?['avatar_url'] as String?,
       marka: json['marka'] as String,
       model: json['model'] as String?,
       yil: json['yil'] as int,

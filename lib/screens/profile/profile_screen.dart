@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../config/routes.dart';
@@ -61,12 +62,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     final url = urls[index];
-    return Image.network(
-      url,
+    return CachedNetworkImage(
+      imageUrl: url,
       width: 64,
       height: 64,
       fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => _buildAvatarImage(urls, index + 1),
+      placeholder: (_, __) => Icon(Icons.person, size: 32, color: AppColors.primary),
+      errorWidget: (_, __, ___) => _buildAvatarImage(urls, index + 1),
     );
   }
 
@@ -317,8 +319,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final avatarUrls = _resolveAvatarUrls();
-    // ignore: avoid_print
-    print('[ProfileScreen] avatar candidates: $avatarUrls');
     return Scaffold(
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

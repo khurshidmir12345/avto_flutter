@@ -21,8 +21,17 @@ class _LoginScreenState extends State<LoginScreen> {
   final _apiService = ApiService();
   bool _isLoading = false;
 
+  void _onPasswordChanged() => setState(() {});
+
+  @override
+  void initState() {
+    super.initState();
+    _passwordController.addListener(_onPasswordChanged);
+  }
+
   @override
   void dispose() {
+    _passwordController.removeListener(_onPasswordChanged);
     _phoneController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -93,13 +102,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     prefixIcon: Icons.lock,
                     validator: (value) {
                       if (value == null || value.isEmpty) return 'Parol kiriting';
+                      if (value.length < 8) return 'Kamida 8 ta belgi';
                       return null;
                     },
                   ),
                   const SizedBox(height: 24),
                   CustomButton(
                     text: AppStrings.login,
-                    onPressed: _login,
+                    onPressed: _passwordController.text.length >= 8 ? _login : null,
                     isLoading: _isLoading,
                   ),
                   const SizedBox(height: 16),

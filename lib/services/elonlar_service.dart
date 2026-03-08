@@ -94,54 +94,77 @@ class ElonlarService {
     }
   }
 
-  /// Rasmlarni e'londan oldin yuklash. image_ids qaytaradi.
+  /// Rasmlarni e'londan oldin yuklash (presigned URL flow). image_ids qaytaradi.
   Future<({bool success, String message, List<int> imageIds})> uploadImagesBeforeElon(
       List<String> filePaths) async {
     try {
       final token = await StorageService.getToken();
       if (token == null) return (success: false, message: 'Avval kirish kerak', imageIds: <int>[]);
 
-      final request = http.MultipartRequest(
-        'POST',
-        Uri.parse(ApiConstants.imagesUploadUrl),
-      );
-      request.headers['Authorization'] = 'Bearer $token';
-      request.headers['Accept'] = 'application/json';
-
-      for (var i = 0; i < filePaths.length; i++) {
-        final path = filePaths[i];
-        final file = File(path);
-        final bytes = await file.readAsBytes();
-        final name = path.split('/').last;
-        final filename = (name.isNotEmpty && name.contains('.')) ? name : 'image_$i.jpg';
-        request.files.add(http.MultipartFile.fromBytes(
-          'images[]',
-          bytes,
-          filename: filename,
-        ));
+      // 1. Content type larni aniqlash
+      final contentTypes = <String>[];
+      for (final path in filePaths) {
+        final ext = path.split('.').last.toLowerCase();
+        contentTypes.add(ext == 'png' ? 'image/png' : 'image/jpeg');
       }
 
-      final streamed = await request.send().timeout(
-        const Duration(seconds: 60),
-        onTimeout: () => throw Exception('Vaqt tugadi'),
+      // 2. Presigned URL lar olish
+      final headers = await _authHeaders();
+      final presignedRes = await http.post(
+        Uri.parse(ApiConstants.imagesPresignedUrl),
+        headers: headers,
+        body: jsonEncode({'content_types': contentTypes}),
       );
-      final response = await http.Response.fromStream(streamed);
-      final body = response.body;
 
-      if (response.statusCode == 201) {
-        final data = jsonDecode(body);
-        final images = data['images'] as List<dynamic>? ?? [];
-        final ids = List<int>.from(images.map((e) => (e as Map<String, dynamic>)['id'] as int));
-        return (success: true, message: data['message'] as String, imageIds: ids);
-      }
-
-      try {
-        final data = jsonDecode(body);
+      if (presignedRes.statusCode != 200) {
+        final data = jsonDecode(presignedRes.body);
         final msg = data['message'] as String? ?? data['errors']?.toString() ?? 'Xatolik';
         return (success: false, message: msg, imageIds: <int>[]);
-      } catch (_) {
-        return (success: false, message: 'Server javobi: ${response.statusCode}', imageIds: <int>[]);
       }
+
+      final presignedData = jsonDecode(presignedRes.body);
+      final urls = presignedData['urls'] as List<dynamic>? ?? [];
+      if (urls.length != filePaths.length) {
+        return (success: false, message: 'Presigned URL lar soni mos kelmadi', imageIds: <int>[]);
+      }
+
+      // 3. Har bir rasmni R2 ga yuklash
+      for (var i = 0; i < filePaths.length; i++) {
+        final file = File(filePaths[i]);
+        final bytes = await file.readAsBytes();
+        final uploadUrl = (urls[i] as Map<String, dynamic>)['upload_url'] as String;
+        final contentType = contentTypes[i];
+        final putRes = await http.put(
+          Uri.parse(uploadUrl),
+          headers: {'Content-Type': contentType},
+          body: bytes,
+        ).timeout(const Duration(seconds: 30));
+        if (putRes.statusCode != 200 && putRes.statusCode != 204) {
+          return (success: false, message: 'Rasm yuklashda xatolik', imageIds: <int>[]);
+        }
+      }
+
+      // 4. image_key larni saqlash
+      final imageKeys = urls.map((u) => (u as Map<String, dynamic>)['image_key'] as String).toList();
+      final saveRes = await http.post(
+        Uri.parse(ApiConstants.imagesSaveUrl),
+        headers: headers,
+        body: jsonEncode({'image_keys': imageKeys}),
+      );
+
+      if (saveRes.statusCode != 201) {
+        final data = jsonDecode(saveRes.body);
+        final msg = data['message'] as String? ?? data['errors']?.toString() ?? 'Xatolik';
+        return (success: false, message: msg, imageIds: <int>[]);
+      }
+
+      final saveData = jsonDecode(saveRes.body);
+      final images = saveData['images'] as List<dynamic>? ?? [];
+      final ids = images.map((e) {
+        final id = (e as Map<String, dynamic>)['id'];
+        return id is int ? id : int.tryParse(id?.toString() ?? '0') ?? 0;
+      }).toList();
+      return (success: true, message: saveData['message'] as String, imageIds: ids);
     } catch (e) {
       return (success: false, message: 'Serverga ulanib bo\'lmadi: $e', imageIds: <int>[]);
     }
@@ -161,39 +184,49 @@ class ElonlarService {
     }
   }
 
-  /// E'longa qo'shimcha rasm yuklash (e'lon yaratilgandan keyin)
+  /// E'longa qo'shimcha rasm yuklash (e'lon yaratilgandan keyin, presigned URL flow)
   Future<({bool success, String message})> uploadImagesToElon(int elonId, List<String> filePaths) async {
     try {
       final token = await StorageService.getToken();
       if (token == null) return (success: false, message: 'Avval kirish kerak');
 
-      final request = http.MultipartRequest(
-        'POST',
-        Uri.parse(ApiConstants.elonlarImages(elonId)),
+      final contentTypes = filePaths.map((p) => p.split('.').last.toLowerCase() == 'png' ? 'image/png' : 'image/jpeg').toList();
+      final headers = await _authHeaders();
+
+      final presignedRes = await http.post(
+        Uri.parse(ApiConstants.imagesPresignedUrl),
+        headers: headers,
+        body: jsonEncode({'car_id': elonId, 'content_types': contentTypes}),
       );
-      request.headers['Authorization'] = 'Bearer $token';
-      request.headers['Accept'] = 'application/json';
-
-      for (final path in filePaths) {
-        request.files.add(await http.MultipartFile.fromPath('images[]', path));
+      if (presignedRes.statusCode != 200) {
+        final data = jsonDecode(presignedRes.body);
+        return (success: false, message: data['message'] as String? ?? 'Xatolik');
       }
 
-      final streamed = await request.send();
-      final response = await http.Response.fromStream(streamed);
-      final body = response.body;
+      final urls = (jsonDecode(presignedRes.body)['urls'] as List<dynamic>?) ?? [];
+      if (urls.length != filePaths.length) return (success: false, message: 'Presigned URL lar mos kelmadi');
 
-      if (response.statusCode == 201) {
-        final data = jsonDecode(body);
-        return (success: true, message: data['message'] as String);
+      for (var i = 0; i < filePaths.length; i++) {
+        final bytes = await File(filePaths[i]).readAsBytes();
+        final putRes = await http.put(
+          Uri.parse((urls[i] as Map<String, dynamic>)['upload_url'] as String),
+          headers: {'Content-Type': contentTypes[i]},
+          body: bytes,
+        ).timeout(const Duration(seconds: 30));
+        if (putRes.statusCode != 200 && putRes.statusCode != 204) return (success: false, message: 'Rasm yuklashda xatolik');
       }
 
-      try {
-        final data = jsonDecode(body);
-        final msg = data['message'] as String? ?? data['errors']?.toString() ?? 'Xatolik';
-        return (success: false, message: msg);
-      } catch (_) {
-        return (success: false, message: 'Server javobi: ${response.statusCode}');
+      final imageKeys = urls.map((u) => (u as Map<String, dynamic>)['image_key'] as String).toList();
+      final saveRes = await http.post(
+        Uri.parse(ApiConstants.imagesSaveUrl),
+        headers: headers,
+        body: jsonEncode({'car_id': elonId, 'image_keys': imageKeys}),
+      );
+      if (saveRes.statusCode != 201) {
+        final data = jsonDecode(saveRes.body);
+        return (success: false, message: data['message'] as String? ?? 'Xatolik');
       }
+      return (success: true, message: jsonDecode(saveRes.body)['message'] as String);
     } catch (e) {
       return (success: false, message: 'Serverga ulanib bo\'lmadi: $e');
     }
@@ -260,6 +293,25 @@ class ElonlarService {
 
       final msg = data['message'] as String? ?? 'Xatolik';
       return (success: false, message: msg);
+    } catch (e) {
+      return (success: false, message: 'Serverga ulanib bo\'lmadi');
+    }
+  }
+
+  /// PUT /api/elonlar/{id}/images/reorder — Rasm tartibini o'zgartirish
+  Future<({bool success, String message})> reorderElonImages(int elonId, List<int> imageIds) async {
+    try {
+      final headers = await _authHeaders();
+      final response = await http.put(
+        Uri.parse(ApiConstants.elonlarImagesReorder(elonId)),
+        headers: headers,
+        body: jsonEncode({'image_ids': imageIds}),
+      );
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return (success: true, message: data['message'] as String);
+      }
+      return (success: false, message: data['message'] as String? ?? 'Xatolik');
     } catch (e) {
       return (success: false, message: 'Serverga ulanib bo\'lmadi');
     }

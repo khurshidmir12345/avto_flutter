@@ -96,7 +96,7 @@ class _MainScreenState extends State<MainScreen> {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        Icon(active ? Icons.chat : Icons.chat_bubble_outline),
+        Icon(active ? Icons.chat_bubble_rounded : Icons.chat_bubble_outline_rounded),
         if (_unreadCount > 0)
           Positioned(
             top: -4,

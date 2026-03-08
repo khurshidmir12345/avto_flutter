@@ -23,8 +23,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _apiService = ApiService();
   bool _isLoading = false;
 
+  void _onPasswordChanged() => setState(() {});
+
+  @override
+  void initState() {
+    super.initState();
+    _passwordController.addListener(_onPasswordChanged);
+    _passwordConfirmController.addListener(_onPasswordChanged);
+  }
+
   @override
   void dispose() {
+    _passwordController.removeListener(_onPasswordChanged);
+    _passwordConfirmController.removeListener(_onPasswordChanged);
     _nameController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
@@ -138,7 +149,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 24),
                   CustomButton(
                     text: AppStrings.register,
-                    onPressed: _register,
+                    onPressed: _passwordController.text.length >= 8 &&
+                            _passwordConfirmController.text.length >= 8
+                        ? _register
+                        : null,
                     isLoading: _isLoading,
                   ),
                   const SizedBox(height: 16),

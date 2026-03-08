@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../config/routes.dart';
 import '../../models/elon_model.dart';
@@ -175,10 +176,11 @@ class _ListingsScreenState extends State<ListingsScreen> {
           fit: StackFit.expand,
           children: [
             if (imageUrl != null)
-              Image.network(
-                imageUrl,
+              CachedNetworkImage(
+                imageUrl: imageUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (_, e, s) => _placeholderCell(),
+                placeholder: (_, __) => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                errorWidget: (_, __, ___) => _placeholderCell(),
               )
             else
               _placeholderCell(),
