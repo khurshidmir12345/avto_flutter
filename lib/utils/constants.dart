@@ -49,9 +49,9 @@ class AppSizes {
 }
 
 class ApiConstants {
-  static const baseUrl = 'https://api.avtovodiy.uz/api';
+  static const baseUrl = 'https://avtovodiy.uz/api';
   /// Rasm URL'lari uchun server manzili (relativ URL bo'lsa)
-  static const imageBaseUrl = 'https://api.avtovodiy.uz';
+  static const imageBaseUrl = 'https://avtovodiy.uz';
   /// CDN URL — R2 rasmlari uchun (backend .env IMAGE_CDN_URL)
   static const imageCdnUrl = 'https://img.avtovodiy.uz';
   /// Laravel storage link: '/storage'. API /uploads/... qaytarsa, /storage/uploads/... bo'ladi.

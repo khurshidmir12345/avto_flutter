@@ -9,7 +9,7 @@ https://img.avtovodiy.uz/uploads/1/xxx.jpg
 Flutter ilovasi API dan kelgan URL ni **o'zgartirmasdan** ishlatadi.
 
 ## API base URL
-- **Backend API:** https://api.avtovodiy.uz/api
+- **Backend API:** https://avtovodiy.uz/api
 - **Rasm CDN:** https://img.avtovodiy.uz
 
 ## Tekshirish
