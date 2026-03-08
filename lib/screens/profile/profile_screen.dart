@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../config/routes.dart';
 import '../../config/theme_controller.dart';
@@ -70,7 +71,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildAvatarImage(List<String> urls, int index) {
     if (index >= urls.length) {
-      return Icon(Icons.person, size: 32, color: AppColors.primary);
+      return PhosphorIcon(PhosphorIconsRegular.user, size: 32, color: AppColors.primary);
     }
 
     final url = urls[index];
@@ -79,7 +80,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       width: 64,
       height: 64,
       fit: BoxFit.cover,
-      placeholder: (_, __) => Icon(Icons.person, size: 32, color: AppColors.primary),
+      placeholder: (_, __) => PhosphorIcon(PhosphorIconsRegular.user, size: 32, color: AppColors.primary),
       errorWidget: (_, __, ___) => _buildAvatarImage(urls, index + 1),
     );
   }
@@ -159,9 +160,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: TextFormField(
             controller: controller,
             autofocus: true,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Ism Familiya',
-              prefixIcon: Icon(Icons.person),
+              prefixIcon: PhosphorIcon(PhosphorIconsRegular.user),
             ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) return 'Ism kiriting';
@@ -270,7 +271,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ],
                               ),
                               child: isSelected
-                                  ? const Icon(Icons.check, color: Colors.white, size: 22)
+                                  ? PhosphorIcon(PhosphorIconsRegular.check, color: Colors.white, size: 22)
                                   : null,
                             ),
                           );
@@ -350,8 +351,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   shape: BoxShape.circle,
                                   border: Border.all(color: Colors.white, width: 1.5),
                                 ),
-                                child: const Icon(
-                                  Icons.camera_alt,
+                                child: PhosphorIcon(
+                                  PhosphorIconsRegular.camera,
                                   size: 14,
                                   color: Colors.white,
                                 ),
@@ -384,7 +385,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       IconButton(
                         onPressed: _user != null ? _editName : null,
-                        icon: Icon(Icons.edit, color: AppColors.primary, size: 20),
+                        icon: PhosphorIcon(PhosphorIconsRegular.pencil, color: AppColors.primary, size: 20),
                         tooltip: 'Ismni tahrirlash',
                       ),
                     ],
@@ -450,7 +451,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 24),
                   _buildMenuItem(
                     context,
-                    icon: Icons.account_balance_wallet,
+                    icon: PhosphorIconsRegular.wallet,
                     title: 'Hisob tarixi',
                     onTap: () => Navigator.pushNamed(context, AppRoutes.balanceHistory)
                         .then((_) => _loadUser(showLoading: false)),
@@ -458,30 +459,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   _buildMenuItem(
                     context,
-                    icon: Icons.directions_car,
+                    icon: PhosphorIconsRegular.car,
                     title: "Mening e'lonlarim",
                     onTap: () => Navigator.pushNamed(context, AppRoutes.myElonlar),
                   ),
-                  _buildMenuItem(context, icon: Icons.favorite_border, title: 'Sevimlilar'),
+                  _buildMenuItem(context, icon: PhosphorIconsRegular.heart, title: 'Sevimlilar'),
                   _buildMenuItem(
                     context,
-                    icon: Icons.lock_reset,
+                    icon: PhosphorIconsRegular.key,
                     title: "Parolni o'zgartirish",
                     onTap: () => Navigator.pushNamed(context, AppRoutes.changePassword),
                   ),
                   _buildMenuItem(
                     context,
-                    icon: Icons.settings,
+                    icon: PhosphorIconsRegular.gear,
                     title: 'Sozlamalar',
                     onTap: _openThemeSettings,
                   ),
-                  _buildMenuItem(context, icon: Icons.info_outline, title: 'Ilova haqida'),
+                  _buildMenuItem(context, icon: PhosphorIconsRegular.info, title: 'Ilova haqida'),
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
                     child: TextButton.icon(
                       onPressed: _logout,
-                      icon: const Icon(Icons.logout, color: AppColors.error),
+                      icon: PhosphorIcon(PhosphorIconsRegular.signOut, color: AppColors.error),
                       label: Text(
                         AppStrings.logout,
                         style: const TextStyle(color: AppColors.error, fontSize: 16),
@@ -508,7 +509,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         leading: Stack(
           clipBehavior: Clip.none,
           children: [
-            Icon(icon, color: AppColors.primary),
+            PhosphorIcon(icon, color: AppColors.primary),
             if (showBadge)
               Positioned(
                 right: -4,
@@ -525,7 +526,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
         title: Text(title),
-        trailing: Icon(Icons.chevron_right, color: AppColors.textSecondary),
+        trailing: PhosphorIcon(PhosphorIconsRegular.caretRight, color: Theme.of(context).colorScheme.onSurfaceVariant),
         onTap: onTap ?? () {},
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../config/routes.dart';
 import '../../models/elon_model.dart';
 import '../../services/elonlar_service.dart';
@@ -116,26 +117,27 @@ class _MyElonlarScreenState extends State<MyElonlarScreen> {
           await Navigator.pushNamed(context, AppRoutes.createElon);
           _loadInitial();
         },
-        icon: const Icon(Icons.add),
+        icon: PhosphorIcon(PhosphorIconsRegular.plus),
         label: const Text("E'lon qo'shish"),
       ),
     );
   }
 
   Widget _emptyState(BuildContext context) {
+    final theme = Theme.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.directions_car_outlined, size: 72, color: AppColors.primaryLight),
+            PhosphorIcon(PhosphorIconsRegular.car, size: 72, color: AppColors.primaryLight),
             const SizedBox(height: 24),
             Text(
               "Sizda hozircha e'lon yo'q",
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppColors.textPrimary,
+              style: theme.textTheme.titleMedium?.copyWith(
+                    color: theme.colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                   ),
             ),
@@ -143,8 +145,8 @@ class _MyElonlarScreenState extends State<MyElonlarScreen> {
             Text(
               "Pastdagi tugmani bosing va yangi e'lon qo'shing",
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
             ),
             const SizedBox(height: 24),
@@ -153,7 +155,7 @@ class _MyElonlarScreenState extends State<MyElonlarScreen> {
                 await Navigator.pushNamed(context, AppRoutes.createElon);
                 _loadInitial();
               },
-              icon: const Icon(Icons.add),
+              icon: PhosphorIcon(PhosphorIconsRegular.plus),
               label: const Text("E'lon qo'shish"),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -168,6 +170,7 @@ class _MyElonlarScreenState extends State<MyElonlarScreen> {
   }
 
   Widget _elonCard(BuildContext context, ElonModel elon) {
+    final theme = Theme.of(context);
     final firstImage = elon.images.isNotEmpty ? elon.images.first : null;
     final imageUrl = firstImage != null && firstImage.url.isNotEmpty ? firstImage.url : null;
     final title = '${elon.marka} ${elon.model ?? ''}'.trim();
@@ -194,9 +197,9 @@ class _MyElonlarScreenState extends State<MyElonlarScreen> {
                       imageUrl: imageUrl,
                       fit: BoxFit.cover,
                       placeholder: (_, __) => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                      errorWidget: (_, __, ___) => _placeholder(),
+                      errorWidget: (_, __, ___) => _placeholder(context),
                     )
-                  : _placeholder(),
+                  : _placeholder(context),
             ),
             Padding(
               padding: const EdgeInsets.all(10),
@@ -208,7 +211,7 @@ class _MyElonlarScreenState extends State<MyElonlarScreen> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                   if (title.isNotEmpty) ...[
@@ -217,7 +220,7 @@ class _MyElonlarScreenState extends State<MyElonlarScreen> {
                       title,
                       style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.textSecondary,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -228,7 +231,7 @@ class _MyElonlarScreenState extends State<MyElonlarScreen> {
                     subtitle,
                     style: TextStyle(
                       fontSize: 11,
-                      color: AppColors.textSecondary.withValues(alpha: 0.9),
+                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.9),
                     ),
                   ),
                 ],
@@ -240,10 +243,11 @@ class _MyElonlarScreenState extends State<MyElonlarScreen> {
     );
   }
 
-  Widget _placeholder() {
+  Widget _placeholder(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
-      color: AppColors.background,
-      child: Icon(Icons.directions_car, size: 40, color: AppColors.textSecondary.withValues(alpha: 0.5)),
+      color: theme.colorScheme.surfaceContainerHighest,
+      child: PhosphorIcon(PhosphorIconsRegular.car, size: 40, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
     );
   }
 }

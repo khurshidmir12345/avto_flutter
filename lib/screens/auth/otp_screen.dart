@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/services.dart';
 import '../../config/routes.dart';
 import '../../services/api_service.dart';
@@ -144,7 +145,7 @@ class _OtpScreenState extends State<OtpScreen> {
           child: Column(
             children: [
               const SizedBox(height: 32),
-              Icon(Icons.sms, size: 64, color: AppColors.primary),
+              PhosphorIcon(PhosphorIconsRegular.chatCircleDots, size: 64, color: AppColors.primary),
               const SizedBox(height: 24),
               Text(
                 'SMS kod yuborildi',

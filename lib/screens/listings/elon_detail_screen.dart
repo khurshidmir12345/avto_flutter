@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../models/conversation_model.dart';
 import '../../models/elon_model.dart';
 import '../../services/chat_service.dart';
@@ -66,9 +67,12 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: AppColors.error),
+              PhosphorIcon(PhosphorIconsRegular.warning, size: 64, color: AppColors.error),
               const SizedBox(height: 16),
-              const Text("E'lon topilmadi"),
+              Text(
+                "E'lon topilmadi",
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+              ),
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () => Navigator.pop(context),
@@ -184,20 +188,21 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
       height: 280,
       width: double.infinity,
       color: AppColors.primaryLight.withValues(alpha: 0.2),
-      child: Icon(Icons.directions_car, size: 80, color: AppColors.primaryLight),
+      child: PhosphorIcon(PhosphorIconsRegular.car, size: 80, color: AppColors.primaryLight),
     );
   }
 
   Widget _buildHeaderCard(ElonModel elon) {
+    final theme = Theme.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSizes.paddingMedium),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(AppSizes.borderRadius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: theme.colorScheme.shadow.withValues(alpha: 0.08),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -208,7 +213,7 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
         children: [
           Text(
             elon.narxFormatted,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,
                 ),
@@ -216,9 +221,9 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
           const SizedBox(height: 4),
           Text(
             '${elon.marka} ${elon.model ?? ''}'.trim(),
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w500,
-                  color: AppColors.textPrimary,
+                  color: theme.colorScheme.onSurface,
                 ),
           ),
         ],
@@ -227,15 +232,16 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
   }
 
   Widget _buildInfoCard(ElonModel elon) {
+    final theme = Theme.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSizes.paddingMedium),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(AppSizes.borderRadius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: theme.colorScheme.shadow.withValues(alpha: 0.08),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -246,15 +252,16 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
   }
 
   Widget _buildTavsifCard(ElonModel elon) {
+    final theme = Theme.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSizes.paddingMedium),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(AppSizes.borderRadius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: theme.colorScheme.shadow.withValues(alpha: 0.08),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -265,18 +272,18 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
         children: [
           Text(
             'Tavsif',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
+                  color: theme.colorScheme.onSurfaceVariant,
                   letterSpacing: 0.5,
                 ),
           ),
           const SizedBox(height: 8),
           Text(
             elon.tavsif!,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            style: theme.textTheme.bodyMedium?.copyWith(
                   height: 1.5,
-                  color: AppColors.textPrimary,
+                  color: theme.colorScheme.onSurface,
                 ),
           ),
         ],
@@ -315,17 +322,18 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
   }
 
   Widget _buildContactSection(ElonModel elon) {
+    final theme = Theme.of(context);
     final canChat = elon.userId != null;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSizes.paddingMedium),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(AppSizes.borderRadius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: theme.colorScheme.shadow.withValues(alpha: 0.08),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -336,8 +344,8 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
         children: [
           Text(
             'Aloqa',
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: AppColors.textSecondary,
+            style: theme.textTheme.labelMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
                   letterSpacing: 0.5,
                 ),
           ),
@@ -347,9 +355,9 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
               Expanded(
                 child: Text(
                   formatPhone(elon.telefon),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: theme.colorScheme.onSurface,
                       ),
                 ),
               ),
@@ -375,8 +383,8 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
                               height: 24,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : Icon(
-                              Icons.chat_bubble_outline_rounded,
+                          : PhosphorIcon(
+                              PhosphorIconsRegular.chatCircle,
                               color: AppColors.primary,
                               size: 24,
                             ),
@@ -391,7 +399,7 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
               Expanded(
                 child: FilledButton.icon(
                   onPressed: () => launchPhone(elon.telefon),
-                  icon: const Icon(Icons.phone_rounded, size: 20),
+                  icon: PhosphorIcon(PhosphorIconsRegular.phone, size: 20, color: Colors.white),
                   label: const Text('Qo\'ng\'iroq qilish'),
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.primary,
@@ -408,8 +416,8 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
                 const SizedBox(width: 12),
                 OutlinedButton.icon(
                   onPressed: _openingChat ? null : () => _openChat(elon),
-                  icon: Icon(
-                    Icons.chat_bubble_outline_rounded,
+                  icon: PhosphorIcon(
+                    PhosphorIconsRegular.chatCircle,
                     size: 20,
                     color: AppColors.primary,
                   ),
@@ -440,28 +448,28 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
   Widget _buildInfoSection(ElonModel elon) {
     final modelName = '${elon.marka} ${elon.model ?? ''}'.trim();
     final items = <_InfoItem>[
-      if (modelName.isNotEmpty) _InfoItem(Icons.directions_car, 'Moshina', modelName),
-      _InfoItem(Icons.calendar_today, 'Yil', '${elon.yil}'),
-      _InfoItem(Icons.straighten, 'Probeg', '${elon.probeg} km'),
-      _InfoItem(Icons.location_on, 'Shahar', elon.shahar),
+      if (modelName.isNotEmpty) _InfoItem(PhosphorIconsRegular.car, 'Moshina', modelName),
+      _InfoItem(PhosphorIconsRegular.calendar, 'Yil', '${elon.yil}'),
+      _InfoItem(PhosphorIconsRegular.gauge, 'Probeg', '${elon.probeg} km'),
+      _InfoItem(PhosphorIconsRegular.mapPin, 'Shahar', elon.shahar),
     ];
     if (elon.rang != null && elon.rang!.isNotEmpty) {
-      items.add(_InfoItem(Icons.palette, 'Rang', elon.rang!));
+      items.add(_InfoItem(PhosphorIconsRegular.palette, 'Rang', elon.rang!));
     }
     if (elon.yoqilgiTuri != null && elon.yoqilgiTuri!.isNotEmpty) {
-      items.add(_InfoItem(Icons.local_gas_station, 'Yoqilg\'i', elon.yoqilgiTuri!));
+      items.add(_InfoItem(PhosphorIconsRegular.gasPump, 'Yoqilg\'i', elon.yoqilgiTuri!));
     }
     if (elon.uzatishQutisi != null && elon.uzatishQutisi!.isNotEmpty) {
-      items.add(_InfoItem(Icons.settings, 'Uzatish qutisi', elon.uzatishQutisi!));
+      items.add(_InfoItem(PhosphorIconsRegular.gear, 'Uzatish qutisi', elon.uzatishQutisi!));
     }
     if (elon.kraskaHolati != null && elon.kraskaHolati!.isNotEmpty) {
-      items.add(_InfoItem(Icons.brush, 'Kraska holati', elon.kraskaHolati!));
+      items.add(_InfoItem(PhosphorIconsRegular.paintBrush, 'Kraska holati', elon.kraskaHolati!));
     }
     if (elon.bankKredit == true) {
-      items.add(_InfoItem(Icons.account_balance, 'Bank kredit', 'Ha'));
+      items.add(_InfoItem(PhosphorIconsRegular.bank, 'Bank kredit', 'Ha'));
     }
     if (elon.general == true) {
-      items.add(_InfoItem(Icons.check_circle, 'General', 'Ha'));
+      items.add(_InfoItem(PhosphorIconsRegular.checkCircle, 'General', 'Ha'));
     }
 
     return Column(
@@ -471,12 +479,13 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
   }
 
   Widget _infoRow(IconData icon, String label, String value) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18, color: AppColors.primary.withValues(alpha: 0.8)),
+          PhosphorIcon(icon, size: 18, color: AppColors.primary.withValues(alpha: 0.8)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -486,11 +495,16 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
                   label,
                   style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.textSecondary,
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(value, style: Theme.of(context).textTheme.bodyMedium),
+                Text(
+                  value,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                      ),
+                ),
               ],
             ),
           ),

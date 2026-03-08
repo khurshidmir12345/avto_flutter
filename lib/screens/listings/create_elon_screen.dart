@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../config/routes.dart';
 import '../../models/category_model.dart';
@@ -376,7 +377,7 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
                               value: c.id,
                               child: Row(
                                 children: [
-                                  Icon(CategoryModel.iconFromString(c.icon),
+                                  PhosphorIcon(CategoryModel.iconFromString(c.icon),
                                       size: 20, color: AppColors.primary),
                                   const SizedBox(width: 8),
                                   Text(c.name),
@@ -392,7 +393,7 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
               CustomTextField(
                 label: 'Marka',
                 controller: _markaController,
-                prefixIcon: Icons.directions_car,
+                prefixIcon: PhosphorIconsRegular.car,
                 validator: (v) =>
                     (v == null || v.isEmpty) ? 'Marka kiriting' : null,
               ),
@@ -400,7 +401,7 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
               CustomTextField(
                 label: 'Model (ixtiyoriy)',
                 controller: _modelController,
-                prefixIcon: Icons.car_repair,
+                prefixIcon: PhosphorIconsRegular.wrench,
               ),
               const SizedBox(height: 12),
               Row(
@@ -606,7 +607,7 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.person_outline, size: 20, color: AppColors.primary),
+              PhosphorIcon(PhosphorIconsRegular.user, size: 20, color: AppColors.primary),
               const SizedBox(width: 8),
               Text(
                 _user?.name ?? 'Foydalanuvchi',
@@ -689,7 +690,7 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.add_photo_alternate, size: 36, color: AppColors.primary),
+              PhosphorIcon(PhosphorIconsRegular.imageSquare, size: 36, color: AppColors.primary),
               const SizedBox(height: 4),
               Text('Rasm qo\'shish',
                   style: TextStyle(color: AppColors.primary)),
@@ -709,7 +710,7 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: AppColors.primaryLight),
         ),
-        child: Icon(Icons.add, size: 32, color: AppColors.primary),
+        child: PhosphorIcon(PhosphorIconsRegular.plus, size: 32, color: AppColors.primary),
       ),
     );
   }
@@ -772,7 +773,7 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, color: Colors.white, size: 28),
+                  PhosphorIcon(PhosphorIconsRegular.warning, color: Colors.white, size: 28),
                   const SizedBox(height: 4),
                   Text(
                     'Xatolik',
@@ -783,7 +784,7 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
                     onPressed: _isUploading
                         ? null
                         : () => _retryUpload(index),
-                    icon: Icon(Icons.refresh, size: 16, color: Colors.white),
+                    icon: PhosphorIcon(PhosphorIconsRegular.arrowsClockwise, size: 16, color: Colors.white),
                     label: Text('Qayta urinish',
                         style: TextStyle(color: Colors.white, fontSize: 11)),
                   ),
@@ -799,7 +800,7 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
             child: const CircleAvatar(
               radius: 12,
               backgroundColor: Colors.red,
-              child: Icon(Icons.close, size: 16, color: Colors.white),
+              child: PhosphorIcon(PhosphorIconsRegular.x, size: 16, color: Colors.white),
             ),
           ),
         ),

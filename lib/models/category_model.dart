@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class CategoryModel {
   final int id;
@@ -42,31 +43,29 @@ class CategoryModel {
   static IconData iconFromString(String icon) {
     final normalized = icon.trim().toLowerCase().replaceAll('-', '_').replaceAll(' ', '_');
 
-    // Backenddan keladigan asosiy 5 ta icon nomi.
     switch (normalized) {
       case 'car':
-        return Icons.directions_car;
+        return PhosphorIconsRegular.car;
       case 'truck':
-        return Icons.local_shipping;
+        return PhosphorIconsRegular.truck;
       case 'motorcycle':
-        return Icons.two_wheeler;
+        return PhosphorIconsRegular.motorcycle;
       case 'settings':
-        return Icons.settings;
+        return PhosphorIconsRegular.gear;
       case 'tractor':
-        return Icons.agriculture;
+        return PhosphorIconsRegular.tractor;
     }
 
-    // Yangi noma'lum nomlar kelsa, nomiga qarab eng yaqin icon tanlanadi.
-    if (normalized.contains('truck') || normalized.contains('yuk')) return Icons.local_shipping;
-    if (normalized.contains('tractor') || normalized.contains('traktor')) return Icons.agriculture;
+    if (normalized.contains('truck') || normalized.contains('yuk')) return PhosphorIconsRegular.truck;
+    if (normalized.contains('tractor') || normalized.contains('traktor')) return PhosphorIconsRegular.tractor;
     if (normalized.contains('motor') || normalized.contains('moto') || normalized.contains('bike')) {
-      return Icons.two_wheeler;
+      return PhosphorIconsRegular.motorcycle;
     }
-    if (normalized.contains('setting') || normalized.contains('sozlama')) return Icons.settings;
+    if (normalized.contains('setting') || normalized.contains('sozlama')) return PhosphorIconsRegular.gear;
     if (normalized.contains('car') || normalized.contains('avto') || normalized.contains('auto')) {
-      return Icons.directions_car;
+      return PhosphorIconsRegular.car;
     }
 
-    return Icons.directions_car;
+    return PhosphorIconsRegular.car;
   }
 }

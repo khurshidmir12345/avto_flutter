@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../config/routes.dart';
 import '../../services/api_service.dart';
 import '../../utils/constants.dart';
@@ -95,19 +96,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
               key: _formKey,
               child: Column(
                 children: [
-                  Icon(Icons.person_add, size: 64, color: AppColors.primary),
+                  PhosphorIcon(PhosphorIconsRegular.userPlus, size: 64, color: AppColors.primary),
                   const SizedBox(height: 24),
                   Text(
                     "Yangi hisob yaratish",
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                   ),
                   const SizedBox(height: 32),
                   CustomTextField(
                     label: AppStrings.fullName,
                     controller: _nameController,
-                    prefixIcon: Icons.person,
+                    prefixIcon: PhosphorIconsRegular.user,
                     validator: (value) {
                       if (value == null || value.isEmpty) return 'Ism kiriting';
                       return null;
@@ -127,7 +129,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     label: 'Parol',
                     controller: _passwordController,
                     obscureText: true,
-                    prefixIcon: Icons.lock,
+                    prefixIcon: PhosphorIconsRegular.lock,
                     validator: (value) {
                       if (value == null || value.isEmpty) return 'Parol kiriting';
                       if (value.length < 8) return 'Kamida 8 ta belgi';
@@ -139,7 +141,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     label: 'Parolni tasdiqlang',
                     controller: _passwordConfirmController,
                     obscureText: true,
-                    prefixIcon: Icons.lock_outline,
+                    prefixIcon: PhosphorIconsRegular.lock,
                     validator: (value) {
                       if (value == null || value.isEmpty) return 'Parolni tasdiqlang';
                       if (value != _passwordController.text) return 'Parollar mos kelmadi';
@@ -159,7 +161,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text("Hisobingiz bormi? "),
+                      Text(
+                        "Hisobingiz bormi? ",
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      ),
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
                         child: Text(

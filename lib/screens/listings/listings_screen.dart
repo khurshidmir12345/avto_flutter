@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../config/routes.dart';
 import '../../models/elon_model.dart';
 import '../../services/elonlar_service.dart';
@@ -131,26 +132,27 @@ class _ListingsScreenState extends State<ListingsScreen> {
           await Navigator.pushNamed(context, AppRoutes.createElon);
           _loadInitial();
         },
-        child: const Icon(Icons.add),
+        child: PhosphorIcon(PhosphorIconsRegular.plus),
       ),
     );
   }
 
   Widget _emptyState(BuildContext context) {
+    final theme = Theme.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.directions_car_outlined, size: 80, color: AppColors.primaryLight),
+          PhosphorIcon(PhosphorIconsRegular.car, size: 80, color: AppColors.primaryLight),
           const SizedBox(height: 16),
           Text(
             "Hozircha e'lonlar yo'q",
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.textSecondary),
+            style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 8),
           Text(
             "Pastdagi + tugmasini bosing",
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
         ],
       ),
@@ -194,7 +196,10 @@ class _ListingsScreenState extends State<ListingsScreen> {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, Colors.black.withValues(alpha: 0.7)],
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.7),
+                    ],
                   ),
                 ),
                 child: Column(
@@ -237,9 +242,10 @@ class _ListingsScreenState extends State<ListingsScreen> {
   }
 
   Widget _placeholderCell() {
+    final theme = Theme.of(context);
     return Container(
-      color: Colors.white,
-      child: const Icon(Icons.directions_car, size: 34, color: Color(0xFFBDBDBD)),
+      color: theme.colorScheme.surface,
+      child: PhosphorIcon(PhosphorIconsRegular.car, size: 34, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
     );
   }
 }

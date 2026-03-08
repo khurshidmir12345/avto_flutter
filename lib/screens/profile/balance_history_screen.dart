@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../models/balance_history_model.dart';
 import '../../services/api_service.dart';
 import '../../services/storage_service.dart';
@@ -77,8 +78,8 @@ class _BalanceHistoryScreenState extends State<BalanceHistoryScreen> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: [
                   SizedBox(height: MediaQuery.of(context).size.height * 0.3),
-                  Icon(
-                    Icons.account_balance_wallet_outlined,
+                  PhosphorIcon(
+                    PhosphorIconsRegular.wallet,
                     size: 64,
                     color: AppColors.textSecondary.withValues(alpha: 0.5),
                   ),
@@ -119,8 +120,8 @@ class _BalanceHistoryScreenState extends State<BalanceHistoryScreen> {
                         backgroundColor: item.isCredit
                             ? AppColors.success.withValues(alpha: 0.2)
                             : AppColors.error.withValues(alpha: 0.2),
-                        child: Icon(
-                          item.isCredit ? Icons.add : Icons.remove,
+                        child: PhosphorIcon(
+                          item.isCredit ? PhosphorIconsRegular.plus : PhosphorIconsRegular.minus,
                           color: item.isCredit ? AppColors.success : AppColors.error,
                           size: 22,
                         ),

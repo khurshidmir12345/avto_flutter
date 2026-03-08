@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../config/routes.dart';
 import '../../services/api_service.dart';
 import '../../utils/constants.dart';
@@ -69,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.directions_car, size: 80, color: AppColors.primary),
+                  PhosphorIcon(PhosphorIconsRegular.car, size: 80, color: AppColors.primary),
                   const SizedBox(height: 12),
                   Text(
                     AppStrings.appName,
@@ -82,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Text(
                     'Avtomobil bozori',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: AppColors.textSecondary,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                   ),
                   const SizedBox(height: 48),
@@ -99,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     label: AppStrings.password,
                     controller: _passwordController,
                     obscureText: true,
-                    prefixIcon: Icons.lock,
+                    prefixIcon: PhosphorIconsRegular.lock,
                     validator: (value) {
                       if (value == null || value.isEmpty) return 'Parol kiriting';
                       if (value.length < 8) return 'Kamida 8 ta belgi';
@@ -116,7 +117,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text("Hisobingiz yo'qmi? "),
+                      Text(
+                        "Hisobingiz yo'qmi? ",
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      ),
                       GestureDetector(
                         onTap: () => Navigator.pushNamed(context, AppRoutes.register),
                         child: Text(

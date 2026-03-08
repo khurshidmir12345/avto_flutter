@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../models/category_model.dart';
 import '../../services/categories_service.dart';
 import '../../utils/constants.dart';
@@ -82,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                     ),
-                    const Icon(Icons.directions_car, size: 64, color: Colors.white24),
+                    PhosphorIcon(PhosphorIconsRegular.car, size: 64, color: Colors.white24),
                   ],
                 ),
               ),
@@ -162,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 32, color: AppColors.primary),
+              PhosphorIcon(icon, size: 32, color: AppColors.primary),
               const SizedBox(height: 8),
               Text(
                 title,

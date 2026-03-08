@@ -1,4 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../models/conversation_model.dart';
 import '../../services/chat_service.dart';
 import '../../utils/constants.dart';
@@ -76,7 +78,7 @@ class _NewChatScreenState extends State<NewChatScreen> {
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'Ism yoki telefon raqam',
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon: PhosphorIcon(PhosphorIconsRegular.magnifyingGlass),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 filled: true,
               ),
@@ -104,7 +106,7 @@ class _NewChatScreenState extends State<NewChatScreen> {
                             leading: CircleAvatar(
                               backgroundColor: AppColors.primaryLight.withValues(alpha: 0.3),
                               backgroundImage: u.avatarUrl != null && u.avatarUrl!.isNotEmpty
-                                  ? NetworkImage(u.avatarUrl!)
+                                  ? CachedNetworkImageProvider(u.avatarUrl!)
                                   : null,
                               child: u.avatarUrl == null || u.avatarUrl!.isEmpty
                                   ? Text(u.name.isNotEmpty ? u.name[0].toUpperCase() : '?',

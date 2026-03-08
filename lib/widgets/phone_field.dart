@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/services.dart';
 import '../utils/constants.dart';
 
@@ -38,9 +39,11 @@ class PhoneField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return TextFormField(
       controller: controller,
       keyboardType: TextInputType.phone,
+      style: TextStyle(color: theme.colorScheme.onSurface),
       inputFormatters: [
         FilteringTextInputFormatter.allow(RegExp(r'[\d ]')),
         _PhoneFormatter(),
@@ -51,29 +54,36 @@ class PhoneField extends StatelessWidget {
         return null;
       },
       decoration: InputDecoration(
+        hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+        labelStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
         labelText: AppStrings.phone,
         prefixIcon: Container(
           padding: const EdgeInsets.only(left: 16, right: 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.phone, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                '+998',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              Container(
-                height: 24,
-                width: 1,
-                margin: const EdgeInsets.only(left: 8),
-                color: Colors.grey.shade400,
-              ),
-            ],
+          child: Builder(
+            builder: (ctx) {
+              final theme = Theme.of(ctx);
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  PhosphorIcon(PhosphorIconsRegular.phone, size: 20, color: theme.colorScheme.onSurface),
+                  const SizedBox(width: 8),
+                  Text(
+                    '+998',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  Container(
+                    height: 24,
+                    width: 1,
+                    margin: const EdgeInsets.only(left: 8),
+                    color: theme.colorScheme.outlineVariant,
+                  ),
+                ],
+              );
+            },
           ),
         ),
         hintText: 'XX XXX XX XX',

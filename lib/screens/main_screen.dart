@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../services/chat_service.dart';
 import 'home/home_screen.dart';
 import 'listings/listings_screen.dart';
@@ -68,13 +69,13 @@ class _MainScreenState extends State<MainScreen> {
         },
         items: [
           const BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
+            icon: PhosphorIcon(PhosphorIconsRegular.house, size: 24),
+            activeIcon: PhosphorIcon(PhosphorIconsFill.house, size: 24),
             label: 'Asosiy',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.directions_car_outlined),
-            activeIcon: Icon(Icons.directions_car),
+            icon: PhosphorIcon(PhosphorIconsRegular.car, size: 24),
+            activeIcon: PhosphorIcon(PhosphorIconsFill.car, size: 24),
             label: "E'lonlar",
           ),
           BottomNavigationBarItem(
@@ -83,8 +84,8 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Chat',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
+            icon: PhosphorIcon(PhosphorIconsRegular.user, size: 24),
+            activeIcon: PhosphorIcon(PhosphorIconsFill.user, size: 24),
             label: 'Profil',
           ),
         ],
@@ -96,7 +97,10 @@ class _MainScreenState extends State<MainScreen> {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        Icon(active ? Icons.chat_bubble_rounded : Icons.chat_bubble_outline_rounded),
+        PhosphorIcon(
+          active ? PhosphorIconsFill.chatCircle : PhosphorIconsRegular.chatCircle,
+          size: 24,
+        ),
         if (_unreadCount > 0)
           Positioned(
             top: -4,

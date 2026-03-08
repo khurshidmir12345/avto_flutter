@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../services/api_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/helpers.dart';
@@ -62,7 +63,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               key: _formKey,
               child: Column(
                 children: [
-                  Icon(Icons.lock_reset, size: 64, color: AppColors.primary),
+                  PhosphorIcon(PhosphorIconsRegular.key, size: 64, color: AppColors.primary),
                   const SizedBox(height: 24),
                   Text(
                     "Parolni yangilash",
@@ -82,7 +83,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     label: 'Joriy parol',
                     controller: _currentPasswordController,
                     obscureText: true,
-                    prefixIcon: Icons.lock_outline,
+                    prefixIcon: PhosphorIconsRegular.lock,
                     validator: (value) {
                       if (value == null || value.isEmpty) return 'Joriy parolni kiriting';
                       return null;
@@ -93,7 +94,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     label: 'Yangi parol',
                     controller: _newPasswordController,
                     obscureText: true,
-                    prefixIcon: Icons.lock,
+                    prefixIcon: PhosphorIconsRegular.lock,
                     validator: (value) {
                       if (value == null || value.isEmpty) return 'Yangi parolni kiriting';
                       if (value.length < 8) return 'Kamida 8 ta belgi';
@@ -105,7 +106,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     label: 'Yangi parolni tasdiqlang',
                     controller: _confirmPasswordController,
                     obscureText: true,
-                    prefixIcon: Icons.lock,
+                    prefixIcon: PhosphorIconsRegular.lock,
                     validator: (value) {
                       if (value == null || value.isEmpty) return 'Parolni tasdiqlang';
                       if (value != _newPasswordController.text) return 'Parollar mos kelmadi';

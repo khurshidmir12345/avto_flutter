@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
@@ -177,7 +179,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               radius: 18,
               backgroundColor: AppColors.primaryLight.withValues(alpha: 0.3),
               backgroundImage: widget.otherUser.avatarUrl != null && widget.otherUser.avatarUrl!.isNotEmpty
-                  ? NetworkImage(widget.otherUser.avatarUrl!)
+                  ? CachedNetworkImageProvider(widget.otherUser.avatarUrl!)
                   : null,
               child: widget.otherUser.avatarUrl == null || widget.otherUser.avatarUrl!.isEmpty
                   ? Text(
@@ -280,7 +282,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 width: 200,
                 height: 200,
                 fit: BoxFit.cover,
-                errorWidget: const Icon(Icons.broken_image, size: 48),
+                errorWidget: PhosphorIcon(PhosphorIconsRegular.imageBroken, size: 48),
               ),
             ),
           ),
@@ -343,7 +345,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           _buildCircleButton(
-            icon: Icons.attach_file_rounded,
+            icon: PhosphorIconsRegular.paperclip,
             onPressed: _sending ? null : _pickAndSendImage,
             tooltip: 'Rasm',
           ),
@@ -370,7 +372,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           const SizedBox(width: 8),
           if (hasText)
             _buildCircleButton(
-              icon: Icons.send_rounded,
+              icon: PhosphorIconsRegular.paperPlaneRight,
               onPressed: _sending ? null : _sendText,
               tooltip: 'Yuborish',
               isPrimary: true,
@@ -378,7 +380,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             )
           else
             _buildCircleButton(
-              icon: _recording ? Icons.stop_rounded : Icons.mic_rounded,
+              icon: _recording ? PhosphorIconsRegular.stop : PhosphorIconsRegular.microphone,
               onPressed: _sending ? null : _toggleRecording,
               tooltip: _recording ? 'To\'xtatish' : 'Ovozli xabar',
               isRecording: _recording,
@@ -423,7 +425,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                   ),
                 )
-              : Icon(
+              : PhosphorIcon(
                   icon,
                   size: 22,
                   color: isPrimary || isRecording
@@ -584,8 +586,8 @@ class _VoiceMessagePlayerState extends State<_VoiceMessagePlayer> {
                         child: CircularProgressIndicator(strokeWidth: 2, color: fg),
                       ),
                     )
-                  : Icon(
-                      _playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                  : PhosphorIcon(
+                      _playing ? PhosphorIconsRegular.pause : PhosphorIconsRegular.play,
                       color: fg,
                       size: 28,
                     ),
@@ -611,7 +613,7 @@ class _VoiceMessagePlayerState extends State<_VoiceMessagePlayer> {
                         style: TextStyle(fontSize: 11, color: fgSecondary),
                       ),
                       const SizedBox(width: 4),
-                      Icon(Icons.done_all, size: 14, color: fgSecondary),
+                      PhosphorIcon(PhosphorIconsRegular.checks, size: 14, color: fgSecondary),
                     ],
                   ],
                 ),

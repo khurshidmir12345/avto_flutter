@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class CustomTextField extends StatefulWidget {
   final String label;
@@ -33,17 +34,23 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return TextFormField(
       controller: widget.controller,
       obscureText: _isObscured,
       keyboardType: widget.keyboardType,
       validator: widget.validator,
+      style: TextStyle(color: theme.colorScheme.onSurface),
       decoration: InputDecoration(
         labelText: widget.label,
-        prefixIcon: widget.prefixIcon != null ? Icon(widget.prefixIcon) : null,
+        labelStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+        hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+        prefixIcon: widget.prefixIcon != null
+            ? PhosphorIcon(widget.prefixIcon!, color: theme.colorScheme.onSurfaceVariant)
+            : null,
         suffixIcon: widget.obscureText
             ? IconButton(
-                icon: Icon(_isObscured ? Icons.visibility_off : Icons.visibility),
+                icon: PhosphorIcon(_isObscured ? PhosphorIconsRegular.eyeSlash : PhosphorIconsRegular.eye),
                 onPressed: () => setState(() => _isObscured = !_isObscured),
               )
             : null,

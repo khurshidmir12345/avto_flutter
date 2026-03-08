@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../services/storage_service.dart';
 
 /// Rasm yuklash — API proxy URL bo'lsa (auth kerak) Bearer token bilan yuklaydi.
@@ -45,7 +46,7 @@ class AuthNetworkImage extends StatelessWidget {
               height: height ?? 200,
               child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
             ),
-            errorWidget: (_, __, ___) => errorWidget ?? const Icon(Icons.broken_image, size: 48),
+            errorWidget: (_, __, ___) => errorWidget ?? PhosphorIcon(PhosphorIconsRegular.imageBroken, size: 48),
           );
         },
       );
@@ -61,7 +62,7 @@ class AuthNetworkImage extends StatelessWidget {
         height: height ?? 200,
         child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
       ),
-      errorWidget: (_, __, ___) => errorWidget ?? const Icon(Icons.broken_image, size: 48),
+      errorWidget: (_, __, ___) => errorWidget ?? PhosphorIcon(PhosphorIconsRegular.imageBroken, size: 48),
     );
   }
 

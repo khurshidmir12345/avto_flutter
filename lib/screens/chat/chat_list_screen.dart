@@ -1,4 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../models/conversation_model.dart';
 import '../../services/chat_service.dart';
 import '../../utils/constants.dart';
@@ -50,7 +52,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
               centerTitle: true,
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.person_add_rounded),
+                  icon: PhosphorIcon(PhosphorIconsRegular.userPlus),
                   onPressed: () async {
                     final conv = await Navigator.push<ConversationModel>(
                       context,
@@ -71,7 +73,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 );
                 if (conv != null && mounted) _load();
               },
-              child: const Icon(Icons.person_add_rounded),
+              child: PhosphorIcon(PhosphorIconsRegular.userPlus),
               tooltip: 'Yangi chat',
             )
           : null,
@@ -97,7 +99,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.chat_bubble_outline_rounded, size: 72, color: AppColors.primaryLight),
+            PhosphorIcon(PhosphorIconsRegular.chatCircle, size: 72, color: AppColors.primaryLight),
             const SizedBox(height: 24),
             Text(
               'Hozircha yozishmalar yo\'q',
@@ -131,7 +133,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
         radius: 28,
         backgroundColor: AppColors.primaryLight.withValues(alpha: 0.3),
         backgroundImage: user.avatarUrl != null && user.avatarUrl!.isNotEmpty
-            ? NetworkImage(user.avatarUrl!)
+            ? CachedNetworkImageProvider(user.avatarUrl!)
             : null,
         child: user.avatarUrl == null || user.avatarUrl!.isEmpty
             ? Text(

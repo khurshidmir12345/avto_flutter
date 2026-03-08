@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../services/storage_service.dart';
 
 /// Rasmni to'liq ekranda ko'rsatish — X tugmasi va tap orqali yopish.
@@ -54,7 +55,7 @@ class FullScreenImageViewer extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(8),
                 child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white, size: 32),
+                  icon: PhosphorIcon(PhosphorIconsRegular.x, color: Colors.white, size: 32),
                   onPressed: () => Navigator.pop(context),
                   tooltip: 'Yopish',
                 ),
@@ -86,7 +87,7 @@ class FullScreenImageViewer extends StatelessWidget {
                   child: CircularProgressIndicator(color: Colors.white),
                 ),
                 errorWidget: (_, __, ___) => const Center(
-                  child: Icon(Icons.broken_image, color: Colors.white, size: 64),
+                  child: PhosphorIcon(PhosphorIconsRegular.imageBroken, color: Colors.white, size: 64),
                 ),
               ),
             ),
@@ -106,7 +107,7 @@ class FullScreenImageViewer extends StatelessWidget {
             child: CircularProgressIndicator(color: Colors.white),
           ),
           errorWidget: (_, __, ___) => const Center(
-            child: Icon(Icons.broken_image, color: Colors.white, size: 64),
+            child: PhosphorIcon(PhosphorIconsRegular.imageBroken, color: Colors.white, size: 64),
           ),
         ),
       ),
