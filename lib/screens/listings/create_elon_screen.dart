@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../config/routes.dart';
 import '../../models/category_model.dart';
+import '../../models/user_model.dart';
 import '../../services/api_service.dart';
 import '../../services/categories_service.dart';
 import '../../services/elonlar_service.dart';
@@ -69,11 +70,20 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
   bool _isSubmitting = false;
   String _loadingStatus = '';
 
+  UserModel? _user;
+  int? _elonCreatePrice;
+
   @override
   void initState() {
     super.initState();
     _loadUser();
+    _loadElonCreatePrice();
     _loadCategories();
+  }
+
+  Future<void> _loadElonCreatePrice() async {
+    final price = await _apiService.getElonCreatePrice();
+    if (mounted) setState(() => _elonCreatePrice = price);
   }
 
   Future<void> _loadCategories() async {
@@ -90,6 +100,7 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
     final user = await _apiService.getCurrentUser();
     if (mounted && user != null) {
       setState(() {
+        _user = user;
         _telefonController.text =
             user.phone.replaceAll(RegExp(r'\D'), '').substring(3);
       });
@@ -324,6 +335,8 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (_user != null) _buildUserInfoCard(),
+              if (_user != null) const SizedBox(height: 16),
               _sectionTitle('Rasmlar'),
               Text(
                 '${_imageItems.length}/$maxImages rasm yuklandi',
@@ -343,7 +356,7 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
                 ),
               const SizedBox(height: 8),
               _buildImageSection(),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               _sectionTitle('Kategoriya'),
               DropdownButtonFormField<int>(
                 value: _categories.isEmpty ? null : _selectedCategoryId,
@@ -374,7 +387,7 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
                 onChanged: (v) => setState(() => _selectedCategoryId = v),
                 validator: (v) => v == null ? 'Kategoriyani tanlang' : null,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               _sectionTitle('Asosiy ma\'lumotlar'),
               CustomTextField(
                 label: 'Marka',
@@ -450,43 +463,51 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
               CustomTextField(
                   label: 'Rang (ixtiyoriy)', controller: _rangController),
               const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: _yoqilgiTuri,
-                decoration: InputDecoration(
-                  labelText: 'Yoqilg\'i turi',
-                  filled: true,
-                  border: OutlineInputBorder(
-                      borderRadius:
-                          BorderRadius.circular(AppSizes.borderRadius)),
-                ),
-                items: ElonOptions.yoqilgiTuri
-                    .map((e) =>
-                        DropdownMenuItem(value: e, child: Text(e)))
-                    .toList(),
-                onChanged: (v) => setState(() => _yoqilgiTuri = v ?? 'benzin'),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: _uzatishQutisi,
-                decoration: InputDecoration(
-                  labelText: 'Uzatish qutisi',
-                  filled: true,
-                  border: OutlineInputBorder(
-                      borderRadius:
-                          BorderRadius.circular(AppSizes.borderRadius)),
-                ),
-                items: ElonOptions.uzatishQutisi
-                    .map((e) =>
-                        DropdownMenuItem(value: e, child: Text(e)))
-                    .toList(),
-                onChanged: (v) =>
-                    setState(() => _uzatishQutisi = v ?? 'mexanika'),
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _yoqilgiTuri,
+                      decoration: InputDecoration(
+                        labelText: 'Yoqilg\'i turi',
+                        filled: true,
+                        border: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.circular(AppSizes.borderRadius)),
+                      ),
+                      items: ElonOptions.yoqilgiTuri
+                          .map((e) =>
+                              DropdownMenuItem(value: e, child: Text(e)))
+                          .toList(),
+                      onChanged: (v) => setState(() => _yoqilgiTuri = v ?? 'benzin'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _uzatishQutisi,
+                      decoration: InputDecoration(
+                        labelText: 'Uzatish qutisi',
+                        filled: true,
+                        border: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.circular(AppSizes.borderRadius)),
+                      ),
+                      items: ElonOptions.uzatishQutisi
+                          .map((e) =>
+                              DropdownMenuItem(value: e, child: Text(e)))
+                          .toList(),
+                      onChanged: (v) =>
+                          setState(() => _uzatishQutisi = v ?? 'mexanika'),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
               CustomTextField(
                   label: 'Kraska holati (ixtiyoriy)',
                   controller: _kraskaController),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               _sectionTitle('Aloqa'),
               CustomTextField(
                 label: 'Shahar',
@@ -503,7 +524,7 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               _sectionTitle('Qo\'shimcha'),
               CustomTextField(
                 label: 'Tavsif (ixtiyoriy)',
@@ -511,17 +532,27 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
                 keyboardType: TextInputType.multiline,
               ),
               const SizedBox(height: 12),
-              CheckboxListTile(
-                title: const Text('Bank kredit'),
-                value: _bankKredit,
-                onChanged: (v) => setState(() => _bankKredit = v ?? false),
-                controlAffinity: ListTileControlAffinity.leading,
-              ),
-              CheckboxListTile(
-                title: const Text('General'),
-                value: _general,
-                onChanged: (v) => setState(() => _general = v ?? false),
-                controlAffinity: ListTileControlAffinity.leading,
+              Row(
+                children: [
+                  Expanded(
+                    child: CheckboxListTile(
+                      title: const Text('Bank kredit'),
+                      value: _bankKredit,
+                      onChanged: (v) => setState(() => _bankKredit = v ?? false),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                  Expanded(
+                    child: CheckboxListTile(
+                      title: const Text('General'),
+                      value: _general,
+                      onChanged: (v) => setState(() => _general = v ?? false),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 24),
               if (_hasAnyUploading)
@@ -558,6 +589,49 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildUserInfoCard() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.primaryLight.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(AppSizes.borderRadius),
+        border: Border.all(color: AppColors.primaryLight.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.person_outline, size: 20, color: AppColors.primary),
+              const SizedBox(width: 8),
+              Text(
+                _user?.name ?? 'Foydalanuvchi',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const Spacer(),
+              Text(
+                formatBalance(_user?.balance ?? 0),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'E\'lon yaratish narxi ${formatBalanceAmount(_elonCreatePrice ?? 25000)} so\'m',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+          ),
+        ],
       ),
     );
   }

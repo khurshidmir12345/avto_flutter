@@ -5,6 +5,7 @@ import '../../config/routes.dart';
 import '../../config/theme_controller.dart';
 import '../../models/user_model.dart';
 import '../../services/api_service.dart';
+import '../../services/storage_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/helpers.dart';
 
@@ -21,6 +22,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   UserModel? _user;
   bool _isLoading = true;
   bool _isUploadingAvatar = false;
+  bool _hasNewBalanceHistory = false;
 
   @override
   void initState() {
@@ -31,12 +33,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loadUser({bool showLoading = true}) async {
     if (showLoading) setState(() => _isLoading = true);
     final user = await _apiService.getCurrentUser();
+    final hasNew = await _checkNewBalanceHistory();
     if (mounted) {
       setState(() {
         _user = user;
+        _hasNewBalanceHistory = hasNew;
         _isLoading = false;
       });
     }
+  }
+
+  Future<bool> _checkNewBalanceHistory() async {
+    final latestAt = await _apiService.getLatestBalanceHistoryCreatedAt();
+    if (latestAt == null) return false;
+    final viewedAt = await StorageService.getBalanceHistoryViewedAt();
+    if (viewedAt == null) return true;
+    return latestAt.compareTo(viewedAt) > 0;
   }
 
   List<String> _resolveAvatarUrls() {
@@ -208,6 +220,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               animation: _themeController,
               builder: (context, _) {
                 final selectedId = _themeController.currentPreset.id;
+                final isDark = _themeController.isDarkMode;
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,93 +231,69 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     Text(
-                      "10 ta rangdan birini tanlang (ID bilan)",
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      "Rangni tanlang",
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppColors.textSecondary,
                           ),
                     ),
                     const SizedBox(height: 16),
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.58,
-                      child: GridView.builder(
-                        shrinkWrap: true,
-                        itemCount: _themeController.presets.length,
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                          childAspectRatio: 1.35,
-                        ),
-                        itemBuilder: (context, index) {
-                          final preset = _themeController.presets[index];
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        ..._themeController.presets.map((preset) {
                           final isSelected = preset.id == selectedId;
-                          return InkWell(
-                            borderRadius: BorderRadius.circular(12),
+                          return GestureDetector(
                             onTap: () => _themeController.selectPreset(preset.id),
                             child: Container(
-                              padding: const EdgeInsets.all(12),
+                              width: 44,
+                              height: 44,
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: isSelected ? preset.primary : Colors.black12,
-                                  width: isSelected ? 2 : 1,
-                                ),
+                                shape: BoxShape.circle,
                                 gradient: LinearGradient(
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [preset.primary, preset.primaryLight],
                                 ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Container(
-                                        width: 20,
-                                        height: 20,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withValues(alpha: 0.9),
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                      if (isSelected)
-                                        const Icon(Icons.check_circle, color: Colors.white),
-                                    ],
-                                  ),
-                                  const Spacer(),
-                                  Text(
-                                    preset.name,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700,
-                                      shadows: [
-                                        Shadow(
-                                          color: Colors.black38,
-                                          blurRadius: 2,
-                                          offset: Offset(0, 1),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    "ID: ${preset.id}",
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                border: Border.all(
+                                  color: isSelected ? Colors.black87 : Colors.black12,
+                                  width: isSelected ? 2.5 : 1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: preset.primary.withValues(alpha: 0.4),
+                                    blurRadius: isSelected ? 8 : 4,
+                                    offset: const Offset(0, 2),
                                   ),
                                 ],
                               ),
+                              child: isSelected
+                                  ? const Icon(Icons.check, color: Colors.white, size: 22)
+                                  : null,
                             ),
                           );
-                        },
-                      ),
+                        }),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Qorongʻu rejim',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                        Switch(
+                          value: isDark,
+                          onChanged: (_) => _themeController.toggleDarkMode(),
+                          activeTrackColor: AppColors.primary.withValues(alpha: 0.5),
+                          activeThumbColor: AppColors.primary,
+                        ),
+                      ],
                     ),
                   ],
                 );
@@ -380,14 +369,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               _user?.name ?? 'Foydalanuvchi',
                               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.textPrimary,
+                                    color: Theme.of(context).colorScheme.onSurface,
                                   ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               _user != null ? formatPhone(_user!.phone) : '',
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: AppColors.textSecondary,
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                                   ),
                             ),
                           ],
@@ -434,7 +423,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                '0 so\'m',
+                                formatBalance(_user?.balance ?? 0),
                                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
@@ -461,12 +450,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 24),
                   _buildMenuItem(
                     context,
+                    icon: Icons.account_balance_wallet,
+                    title: 'Hisob tarixi',
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.balanceHistory)
+                        .then((_) => _loadUser(showLoading: false)),
+                    showBadge: _hasNewBalanceHistory,
+                  ),
+                  _buildMenuItem(
+                    context,
                     icon: Icons.directions_car,
                     title: "Mening e'lonlarim",
                     onTap: () => Navigator.pushNamed(context, AppRoutes.myElonlar),
                   ),
                   _buildMenuItem(context, icon: Icons.favorite_border, title: 'Sevimlilar'),
-                  _buildMenuItem(context, icon: Icons.history, title: 'Tarix'),
                   _buildMenuItem(
                     context,
                     icon: Icons.lock_reset,
@@ -505,10 +501,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required IconData icon,
     required String title,
     VoidCallback? onTap,
+    bool showBadge = false,
   }) {
     return Card(
       child: ListTile(
-        leading: Icon(icon, color: AppColors.primary),
+        leading: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Icon(icon, color: AppColors.primary),
+            if (showBadge)
+              Positioned(
+                right: -4,
+                top: -4,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: AppColors.error,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+          ],
+        ),
         title: Text(title),
         trailing: Icon(Icons.chevron_right, color: AppColors.textSecondary),
         onTap: onTap ?? () {},

@@ -10,7 +10,9 @@ class StorageService {
     ),
   );
   static const _userKey = 'user_data';
+  static const _balanceHistoryViewedAtKey = 'balance_history_viewed_at';
   static const _themeIdKey = 'theme_id';
+  static const _darkModeKey = 'dark_mode';
 
   static Future<void> saveToken(String token) async {
     await _storage.write(key: _tokenKey, value: token);
@@ -36,6 +38,7 @@ class StorageService {
   static Future<void> clearAuthData() async {
     await _storage.delete(key: _tokenKey);
     await _storage.delete(key: _userKey);
+    await _storage.delete(key: _balanceHistoryViewedAtKey);
   }
 
   static Future<void> clearAll() async {
@@ -48,5 +51,23 @@ class StorageService {
 
   static Future<String?> getThemeId() async {
     return await _storage.read(key: _themeIdKey);
+  }
+
+  static Future<void> saveDarkMode(bool value) async {
+    await _storage.write(key: _darkModeKey, value: value.toString());
+  }
+
+  static Future<bool> getDarkMode() async {
+    final v = await _storage.read(key: _darkModeKey);
+    return v == 'true';
+  }
+
+  /// Hisob tarixi oxirgi ko'rilgan vaqti (yangi xabar badge uchun)
+  static Future<void> saveBalanceHistoryViewedAt(String iso8601) async {
+    await _storage.write(key: _balanceHistoryViewedAtKey, value: iso8601);
+  }
+
+  static Future<String?> getBalanceHistoryViewedAt() async {
+    return await _storage.read(key: _balanceHistoryViewedAtKey);
   }
 }

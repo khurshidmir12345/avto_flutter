@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import '../models/balance_history_model.dart';
 import '../models/user_model.dart';
 import '../utils/constants.dart';
 import 'storage_service.dart';
@@ -221,6 +222,55 @@ class ApiService {
     } catch (_) {
       return (success: false, message: 'Rasm yuklashda xatolik', user: null);
     }
+  }
+
+  // GET /api/auth/balance-history
+  Future<({List<BalanceHistoryModel> items, int total, int lastPage})?> getBalanceHistory({
+    int page = 1,
+    int perPage = 15,
+  }) async {
+    try {
+      final headers = await _authHeaders();
+      final uri = Uri.parse(ApiConstants.balanceHistoryUrl)
+          .replace(queryParameters: {'page': '$page', 'per_page': '$perPage'});
+      final response = await http.get(uri, headers: headers);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final list = (data['data'] as List)
+            .map((e) => BalanceHistoryModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+        final meta = data['meta'] as Map<String, dynamic>;
+        return (
+          items: list,
+          total: meta['total'] as int,
+          lastPage: meta['last_page'] as int,
+        );
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  // GET /api/auth/elon-create-price
+  Future<int?> getElonCreatePrice() async {
+    try {
+      final headers = await _authHeaders();
+      final response = await http.get(
+        Uri.parse(ApiConstants.elonCreatePriceUrl),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return (data['amount'] as num?)?.toInt();
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /// Eng yangi balance history yozuvining created_at — yangi xabar badge uchun
+  Future<String?> getLatestBalanceHistoryCreatedAt() async {
+    final result = await getBalanceHistory(page: 1, perPage: 1);
+    return result?.items.isNotEmpty == true ? result!.items.first.createdAt : null;
   }
 
   // POST /api/auth/logout

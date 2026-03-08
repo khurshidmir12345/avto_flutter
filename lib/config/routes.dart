@@ -7,6 +7,7 @@ import '../screens/auth/otp_screen.dart';
 import '../screens/listings/create_elon_screen.dart';
 import '../screens/listings/my_elonlar_screen.dart';
 import '../screens/chat/chat_list_screen.dart';
+import '../screens/profile/balance_history_screen.dart';
 import '../screens/profile/change_password_screen.dart';
 
 class AppRoutes {
@@ -19,6 +20,7 @@ class AppRoutes {
   static const myElonlar = '/my-elonlar';
   static const chatList = '/chat-list';
   static const changePassword = '/change-password';
+  static const balanceHistory = '/balance-history';
 
   static Map<String, WidgetBuilder> get routes {
     return {
@@ -31,6 +33,7 @@ class AppRoutes {
       myElonlar: (context) => const MyElonlarScreen(),
       chatList: (context) => const ChatListScreen(),
       changePassword: (context) => const ChangePasswordScreen(),
+      balanceHistory: (context) => const BalanceHistoryScreen(),
     };
   }
 }

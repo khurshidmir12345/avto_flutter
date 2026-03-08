@@ -27,6 +27,8 @@ class _AvtoVodiyAppState extends State<AvtoVodiyApp> {
       builder: (context, _) => MaterialApp(
         title: AppStrings.appName,
         theme: AppTheme.lightTheme(_themeController.currentPreset),
+        darkTheme: AppTheme.darkTheme(_themeController.currentPreset),
+        themeMode: _themeController.isDarkMode ? ThemeMode.dark : ThemeMode.light,
         debugShowCheckedModeBanner: false,
         initialRoute: AppRoutes.authCheck,
         routes: AppRoutes.routes,

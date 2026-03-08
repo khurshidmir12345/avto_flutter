@@ -191,10 +191,19 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(widget.otherUser.name, style: const TextStyle(fontSize: 16)),
+                  Text(
+                    widget.otherUser.name,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
                   Text(
                     formatPhone(widget.otherUser.phone),
-                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -211,7 +220,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     ? Center(
                         child: Text(
                           'Xabar yuborishni boshlang',
-                          style: TextStyle(color: AppColors.textSecondary),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       )
                     : ListView.builder(
@@ -229,6 +240,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   Widget _messageBubble(ConversationMessageModel msg, int currentUserId) {
     final isMe = msg.senderId == currentUserId;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final otherBubbleColor = isDark ? Colors.grey.shade700 : Colors.grey.shade200;
 
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -237,7 +250,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
         decoration: BoxDecoration(
-          color: isMe ? AppColors.primary : Colors.grey.shade200,
+          color: isMe ? AppColors.primary : otherBubbleColor,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
@@ -273,28 +286,41 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           ),
           if (msg.body != null && msg.body!.isNotEmpty) ...[
             const SizedBox(height: 4),
-            Text(msg.body!, style: TextStyle(color: isMe ? Colors.white : Colors.black87)),
+            Text(
+              msg.body!,
+              style: TextStyle(
+                color: isMe ? Colors.white : Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
           ],
         ],
       );
     }
 
     if (msg.isVoice && msg.mediaUrl != null) {
+      final fg = isMe ? Colors.white : Theme.of(context).colorScheme.onSurface;
       return _VoiceMessagePlayer(
         url: msg.mediaUrl!,
         isMe: isMe,
+        foregroundColor: fg,
         createdAt: msg.createdAt,
       );
     }
 
     return Text(
       msg.body ?? '',
-      style: TextStyle(color: isMe ? Colors.white : Colors.black87, fontSize: 16),
+      style: TextStyle(
+        color: isMe ? Colors.white : Theme.of(context).colorScheme.onSurface,
+        fontSize: 16,
+      ),
     );
   }
 
   Widget _buildInputBar() {
     final hasText = _textController.text.trim().isNotEmpty;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final barColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final fieldColor = isDark ? Colors.grey.shade800 : Colors.grey.shade100;
 
     return Container(
       padding: EdgeInsets.only(
@@ -304,8 +330,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         bottom: 8 + MediaQuery.of(context).padding.bottom,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4, offset: const Offset(0, -2))],
+        color: barColor,
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black45 : Colors.black12,
+            blurRadius: 4,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -326,7 +358,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
-                fillColor: Colors.grey.shade100,
+                fillColor: fieldColor,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
               maxLines: 4,
@@ -364,6 +396,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     bool loading = false,
     bool isRecording = false,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final defaultBg = isDark ? Colors.grey.shade700 : Colors.grey.shade200;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -377,7 +412,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 ? AppColors.error.withValues(alpha: 0.15)
                 : isPrimary
                     ? AppColors.primary
-                    : Colors.grey.shade200,
+                    : defaultBg,
             shape: BoxShape.circle,
           ),
           child: loading
@@ -393,7 +428,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   size: 22,
                   color: isPrimary || isRecording
                       ? (isRecording ? AppColors.error : Colors.white)
-                      : AppColors.textSecondary,
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
         ),
       ),
@@ -405,11 +440,13 @@ class _VoiceMessagePlayer extends StatefulWidget {
   const _VoiceMessagePlayer({
     required this.url,
     required this.isMe,
+    required this.foregroundColor,
     this.createdAt,
   });
 
   final String url;
   final bool isMe;
+  final Color foregroundColor;
   final String? createdAt;
 
   @override
@@ -520,8 +557,8 @@ class _VoiceMessagePlayerState extends State<_VoiceMessagePlayer> {
 
   @override
   Widget build(BuildContext context) {
-    final fg = widget.isMe ? Colors.white : Colors.black87;
-    final fgSecondary = widget.isMe ? Colors.white70 : Colors.black54;
+    final fg = widget.foregroundColor;
+    final fgSecondary = fg.withValues(alpha: 0.8);
 
     return InkWell(
       onTap: _loading ? null : _togglePlay,
@@ -536,7 +573,7 @@ class _VoiceMessagePlayerState extends State<_VoiceMessagePlayer> {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: widget.isMe ? Colors.white24 : Colors.black12,
+                color: fg.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: _loading

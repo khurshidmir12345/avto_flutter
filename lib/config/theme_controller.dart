@@ -24,90 +24,95 @@ class ThemeController extends ChangeNotifier {
   }
   static final ThemeController instance = ThemeController._();
 
+  /// Jiddiy, erkaklarga mos ranglar
   final List<AppColorPreset> presets = const [
     AppColorPreset(
       id: 'C01',
-      name: 'Mint Gold',
-      primary: Color(0xFFA7D98C),
-      primaryLight: Color(0xFFD9BE8C),
-      background: Color(0xFFF9F6EE),
+      name: 'Avto Vodiy',
+      primary: Color(0xFF0F6E3B),
+      primaryLight: Color(0xFF2E7D4A),
+      background: Color(0xFFF2F7F4),
     ),
     AppColorPreset(
       id: 'C02',
-      name: 'Soft Lime',
-      primary: Color(0xFFCDD98C),
-      primaryLight: Color(0xFFA7D98C),
-      background: Color(0xFFF8FAEE),
+      name: 'Forest',
+      primary: Color(0xFF1B5E20),
+      primaryLight: Color(0xFF388E3C),
+      background: Color(0xFFF1F8E9),
     ),
     AppColorPreset(
       id: 'C03',
-      name: 'Sky Lavender',
-      primary: Color(0xFF8CA7D9),
-      primaryLight: Color(0xFFBE8CD9),
-      background: Color(0xFFF4F6FB),
+      name: 'Navy',
+      primary: Color(0xFF0D47A1),
+      primaryLight: Color(0xFF1976D2),
+      background: Color(0xFFE3F2FD),
     ),
     AppColorPreset(
       id: 'C04',
-      name: 'Rose Sand',
-      primary: Color(0xFFD39292),
-      primaryLight: Color(0xFFD3B392),
-      background: Color(0xFFFCF5F2),
+      name: 'Teal',
+      primary: Color(0xFF00695C),
+      primaryLight: Color(0xFF00897B),
+      background: Color(0xFFE0F2F1),
     ),
     AppColorPreset(
       id: 'C05',
-      name: 'Sand Olive',
-      primary: Color(0xFFD3B392),
-      primaryLight: Color(0xFFD3D392),
-      background: Color(0xFFFBF9EF),
+      name: 'Slate',
+      primary: Color(0xFF37474F),
+      primaryLight: Color(0xFF546E7A),
+      background: Color(0xFFECEFF1),
     ),
     AppColorPreset(
       id: 'C06',
-      name: 'Aqua Blue',
-      primary: Color(0xFF3CA7FF),
-      primaryLight: Color(0xFF74D0FF),
-      background: Color(0xFFF2FAFF),
+      name: 'Indigo',
+      primary: Color(0xFF283593),
+      primaryLight: Color(0xFF3949AB),
+      background: Color(0xFFE8EAF6),
     ),
     AppColorPreset(
       id: 'C07',
-      name: 'Coral Peach',
-      primary: Color(0xFFFF6F91),
-      primaryLight: Color(0xFFFF9F68),
-      background: Color(0xFFFFF4F3),
+      name: 'Brown',
+      primary: Color(0xFF5D4037),
+      primaryLight: Color(0xFF795548),
+      background: Color(0xFFEFEBE9),
     ),
     AppColorPreset(
       id: 'C08',
-      name: 'Violet Ice',
-      primary: Color(0xFF8B7CFF),
-      primaryLight: Color(0xFF6FD6FF),
-      background: Color(0xFFF4F7FF),
+      name: 'Dark Teal',
+      primary: Color(0xFF004D40),
+      primaryLight: Color(0xFF00695C),
+      background: Color(0xFFE0F2F1),
     ),
     AppColorPreset(
       id: 'C09',
-      name: 'Neo Green',
-      primary: Color(0xFF00C980),
-      primaryLight: Color(0xFF42E695),
-      background: Color(0xFFF0FFF7),
+      name: 'Steel',
+      primary: Color(0xFF455A64),
+      primaryLight: Color(0xFF607D8B),
+      background: Color(0xFFCFD8DC),
     ),
     AppColorPreset(
       id: 'C10',
-      name: 'Graphite Cyan',
-      primary: Color(0xFF3A4B61),
-      primaryLight: Color(0xFF5FD3BC),
-      background: Color(0xFFF2F6F7),
+      name: 'Deep Blue',
+      primary: Color(0xFF1565C0),
+      primaryLight: Color(0xFF42A5F5),
+      background: Color(0xFFE3F2FD),
     ),
   ];
 
-  String _selectedId = 'C03';
+  String _selectedId = 'C01';
+  bool _isDarkMode = false;
+
+  bool get isDarkMode => _isDarkMode;
 
   AppColorPreset get currentPreset =>
       presets.firstWhere((p) => p.id == _selectedId, orElse: () => presets.first);
 
   void _applyCurrentPreset() {
     final preset = currentPreset;
+    final bg = _isDarkMode ? const Color(0xFF121212) : preset.background;
     AppColors.applyPreset(
       primaryColor: preset.primary,
       primaryLightColor: preset.primaryLight,
-      backgroundColor: preset.background,
+      backgroundColor: bg,
     );
   }
 
@@ -116,6 +121,7 @@ class ThemeController extends ChangeNotifier {
     if (savedId != null && presets.any((p) => p.id == savedId)) {
       _selectedId = savedId;
     }
+    _isDarkMode = await StorageService.getDarkMode();
     _applyCurrentPreset();
     notifyListeners();
   }
@@ -125,6 +131,13 @@ class ThemeController extends ChangeNotifier {
     _selectedId = id;
     _applyCurrentPreset();
     await StorageService.saveThemeId(id);
+    notifyListeners();
+  }
+
+  Future<void> toggleDarkMode() async {
+    _isDarkMode = !_isDarkMode;
+    _applyCurrentPreset();
+    await StorageService.saveDarkMode(_isDarkMode);
     notifyListeners();
   }
 }

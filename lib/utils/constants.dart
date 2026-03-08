@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static Color primary = const Color(0xFFA7D98C);
-  static Color primaryLight = const Color(0xFFD9BE8C);
-  static Color secondary = const Color(0xFFCDD98C);
-  static Color background = const Color(0xFFF9F6EE);
+  static Color primary = const Color(0xFF0F6E3B);
+  static Color primaryLight = const Color(0xFF2E7D4A);
+  static Color secondary = const Color(0xFF1F8B4D);
+  static Color background = const Color(0xFFF2F7F4);
   static const surface = Colors.white;
   static const error = Color(0xFFD32F2F);
   static Color success = const Color(0xFF2E9F58);
@@ -49,11 +49,11 @@ class AppSizes {
 }
 
 class ApiConstants {
-  static const baseUrl = 'https://avtovodiy.uz/api';
+  static const baseUrl = 'http://localhost:8080/api'; // https://avtovodiy.uz/api
   /// Rasm URL'lari uchun server manzili (relativ URL bo'lsa)
-  static const imageBaseUrl = 'https://avtovodiy.uz';
+  static const imageBaseUrl = 'http://localhost:8080'; // https://avtovodiy.uz
   /// CDN URL — R2 rasmlari uchun (backend .env IMAGE_CDN_URL)
-  static const imageCdnUrl = 'https://img.avtovodiy.uz';
+  static const imageCdnUrl = 'http://localhost:8080'; // https://img.avtovodiy.uz
   /// Laravel storage link: '/storage'. API /uploads/... qaytarsa, /storage/uploads/... bo'ladi.
   /// 404 bo'lsa: '' qiling. 403 bo'lsa: backend permissions tekshiring.
   static const imagePathPrefix = '';
@@ -61,6 +61,8 @@ class ApiConstants {
   static const loginUrl = '$baseUrl/auth/login';
   static const verifyOtpUrl = '$baseUrl/auth/verify-otp';
   static const userUrl = '$baseUrl/auth/user';
+  static const balanceHistoryUrl = '$baseUrl/auth/balance-history';
+  static const elonCreatePriceUrl = '$baseUrl/auth/elon-create-price';
   static const logoutUrl = '$baseUrl/auth/logout';
   static const changePasswordUrl = '$baseUrl/auth/password';
   static const updateProfileUrl = '$baseUrl/auth/profile';

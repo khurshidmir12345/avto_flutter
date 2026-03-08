@@ -91,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 "Kategoriyalar",
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
               ),
               const SizedBox(height: 12),
@@ -103,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Text(
                             "Kategoriyalar yo'q",
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: AppColors.textSecondary,
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                                 ),
                           ),
                         )
@@ -129,17 +129,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 "So'nggi e'lonlar",
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
               ),
               const SizedBox(height: 12),
               Center(
                 child: Padding(
                   padding: const EdgeInsets.all(32),
-                  child: Text(
+                    child: Text(
                     "E'lonlar sahifasiga o'ting",
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: AppColors.textSecondary,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                   ),
                 ),
@@ -168,14 +168,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 title,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                 textAlign: TextAlign.center,
               ),
               Text(
                 "$count ta e'lon",
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
               ),
             ],
