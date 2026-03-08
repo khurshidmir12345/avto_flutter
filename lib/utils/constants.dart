@@ -49,11 +49,11 @@ class AppSizes {
 }
 
 class ApiConstants {
-  static const baseUrl = 'http://localhost:8080/api'; // https://avtovodiy.uz/api
+  static const baseUrl = 'https://avtovodiy.uz/api'; // http://localhost:8080/api
   /// Rasm URL'lari uchun server manzili (relativ URL bo'lsa)
-  static const imageBaseUrl = 'http://localhost:8080'; // https://avtovodiy.uz
+  static const imageBaseUrl = 'https://avtovodiy.uz'; // http://localhost:8080
   /// CDN URL — R2 rasmlari uchun (backend .env IMAGE_CDN_URL)
-  static const imageCdnUrl = 'http://localhost:8080'; // https://img.avtovodiy.uz
+  static const imageCdnUrl = 'https://img.avtovodiy.uz'; // http://localhost:8080
   /// Laravel storage link: '/storage'. API /uploads/... qaytarsa, /storage/uploads/... bo'ladi.
   /// 404 bo'lsa: '' qiling. 403 bo'lsa: backend permissions tekshiring.
   static const imagePathPrefix = '';
