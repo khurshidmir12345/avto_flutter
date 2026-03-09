@@ -457,7 +457,8 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
       items.add(_InfoItem(PhosphorIconsRegular.palette, 'Rang', elon.rang!));
     }
     if (elon.yoqilgiTuri != null && elon.yoqilgiTuri!.isNotEmpty) {
-      items.add(_InfoItem(PhosphorIconsRegular.gasPump, 'Yoqilg\'i', elon.yoqilgiTuri!));
+      final label = ElonOptions.yoqilgiTuriLabels[elon.yoqilgiTuri!] ?? elon.yoqilgiTuri!;
+      items.add(_InfoItem(PhosphorIconsRegular.gasPump, 'Yoqilg\'i', label));
     }
     if (elon.uzatishQutisi != null && elon.uzatishQutisi!.isNotEmpty) {
       items.add(_InfoItem(PhosphorIconsRegular.gear, 'Uzatish qutisi', elon.uzatishQutisi!));

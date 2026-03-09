@@ -477,8 +477,9 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
                                 BorderRadius.circular(AppSizes.borderRadius)),
                       ),
                       items: ElonOptions.yoqilgiTuri
-                          .map((e) =>
-                              DropdownMenuItem(value: e, child: Text(e)))
+                          .map((e) => DropdownMenuItem(
+                              value: e,
+                              child: Text(ElonOptions.yoqilgiTuriLabels[e] ?? e)))
                           .toList(),
                       onChanged: (v) => setState(() => _yoqilgiTuri = v ?? 'benzin'),
                     ),

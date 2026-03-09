@@ -49,11 +49,11 @@ class AppSizes {
 }
 
 class ApiConstants {
-  static const baseUrl = 'https://avtovodiy.uz/api';
-  // static const baseUrl = 'http://localhost:8080/api'; // local
+  // static const baseUrl = 'https://avtovodiy.uz/api';
+  static const baseUrl = 'http://localhost:8080/api'; // local
   /// Rasm URL'lari uchun server manzili (relativ URL bo'lsa)
-  static const imageBaseUrl = 'https://avtovodiy.uz';
-  // static const imageBaseUrl = 'http://localhost:8080'; // local
+  // static const imageBaseUrl = 'https://avtovodiy.uz';
+  static const imageBaseUrl = 'http://localhost:8080'; // local
   /// CDN URL — R2 rasmlari uchun (backend .env IMAGE_CDN_URL)
   static const imageCdnUrl = 'https://img.avtovodiy.uz';
   // static const imageCdnUrl = 'http://localhost:8080'; // local
@@ -96,12 +96,22 @@ class ElonOptions {
   static const valyuta = ['USD', 'UZS'];
   static const yoqilgiTuri = [
     'benzin',
-    'metan',
     'benzin+metan',
+    'benzin+propan',
     'dizel',
-    'elektr',
+    'salarka',
+    'eloktor',
     'gibrid',
   ];
+  static const yoqilgiTuriLabels = {
+    'benzin': 'Benzin',
+    'benzin+metan': 'Benzin + Metan',
+    'benzin+propan': 'Benzin + Propan',
+    'dizel': 'Dizel',
+    'salarka': 'Salarka',
+    'eloktor': 'Eloktor',
+    'gibrid': 'Gibrid',
+  };
   static const uzatishQutisi = ['mexanika', 'avtomat'];
   /// E'lon holati (yangilash uchun): active, sold, inactive
   static const holati = ['active', 'sold', 'inactive'];
