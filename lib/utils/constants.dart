@@ -49,11 +49,9 @@ class AppSizes {
 }
 
 class ApiConstants {
-  // static const baseUrl = 'https://avtovodiy.uz/api';
-  static const baseUrl = 'http://localhost:8080/api'; // local
+  static const baseUrl = 'https://avtovodiy.uz/api';
   /// Rasm URL'lari uchun server manzili (relativ URL bo'lsa)
-  // static const imageBaseUrl = 'https://avtovodiy.uz';
-  static const imageBaseUrl = 'http://localhost:8080'; // local
+  static const imageBaseUrl = 'https://avtovodiy.uz';
   /// CDN URL — R2 rasmlari uchun (backend .env IMAGE_CDN_URL)
   static const imageCdnUrl = 'https://img.avtovodiy.uz';
   // static const imageCdnUrl = 'http://localhost:8080'; // local
