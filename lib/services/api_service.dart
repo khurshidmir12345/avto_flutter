@@ -273,6 +273,52 @@ class ApiService {
     return result?.items.isNotEmpty == true ? result!.items.first.createdAt : null;
   }
 
+  // GET /api/telegram/link-info
+  Future<({String? botUsername, String? botLink, String? message})?> getTelegramLinkInfo() async {
+    try {
+      final response = await http.get(
+        Uri.parse(ApiConstants.telegramLinkInfoUrl),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return (
+          botUsername: data['bot_username'] as String?,
+          botLink: data['bot_link'] as String?,
+          message: data['instructions'] as String?,
+        );
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  // POST /api/telegram/link
+  Future<({bool success, String message, UserModel? user})> linkTelegram(String token) async {
+    try {
+      final headers = await _authHeaders();
+      final response = await http.post(
+        Uri.parse(ApiConstants.telegramLinkUrl),
+        headers: headers,
+        body: jsonEncode({'token': token}),
+      );
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      if (response.statusCode == 200) {
+        final user = UserModel.fromJson(data['user'] as Map<String, dynamic>);
+        return (success: true, message: data['message'] as String, user: user);
+      }
+      if (response.statusCode == 401) {
+        return (success: false, message: 'Avval ilovaga kiring', user: null);
+      }
+      return (
+        success: false,
+        message: data['message'] as String? ?? 'Xatolik yuz berdi',
+        user: null,
+      );
+    } catch (e) {
+      return (success: false, message: 'Serverga ulanib bo\'lmadi', user: null);
+    }
+  }
+
   // POST /api/auth/logout
   Future<bool> logout() async {
     try {

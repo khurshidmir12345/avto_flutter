@@ -87,6 +87,9 @@ class ApiConstants {
   static const chatConversationsUrl = '$baseUrl/chat/conversations';
   static String chatConversationMessages(int id) => '$baseUrl/chat/conversations/$id/messages';
   static const chatUsersUrl = '$baseUrl/chat/users';
+
+  static const telegramLinkInfoUrl = '$baseUrl/telegram/link-info';
+  static const telegramLinkUrl = '$baseUrl/telegram/link';
 }
 
 /// Bir e'lon uchun maksimal rasm soni

@@ -324,6 +324,8 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
   Widget _buildContactSection(ElonModel elon) {
     final theme = Theme.of(context);
     final canChat = elon.userId != null;
+    final hasTelegram = elon.ownerTelegramUsername != null &&
+        elon.ownerTelegramUsername!.trim().isNotEmpty;
 
     return Container(
       width: double.infinity,
@@ -391,6 +393,32 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
                     ),
                   ),
                 ),
+              if (hasTelegram) ...[
+                if (canChat) const SizedBox(width: 8),
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => launchTelegram(elon.ownerTelegramUsername!),
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: PhosphorIcon(
+                        PhosphorIconsRegular.telegramLogo,
+                        color: AppColors.primary,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 12),
@@ -423,6 +451,32 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
                   ),
                   label: Text(
                     'Xabar',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: BorderSide(color: AppColors.primary.withValues(alpha: 0.6)),
+                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ],
+              if (hasTelegram) ...[
+                const SizedBox(width: 12),
+                OutlinedButton.icon(
+                  onPressed: () => launchTelegram(elon.ownerTelegramUsername!),
+                  icon: PhosphorIcon(
+                    PhosphorIconsRegular.telegramLogo,
+                    size: 20,
+                    color: AppColors.primary,
+                  ),
+                  label: Text(
+                    'Telegram',
                     style: TextStyle(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w600,

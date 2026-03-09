@@ -9,6 +9,7 @@ import '../screens/listings/my_elonlar_screen.dart';
 import '../screens/chat/chat_list_screen.dart';
 import '../screens/profile/balance_history_screen.dart';
 import '../screens/profile/change_password_screen.dart';
+import '../screens/profile/telegram_link_screen.dart';
 
 class AppRoutes {
   static const home = '/';
@@ -21,6 +22,7 @@ class AppRoutes {
   static const chatList = '/chat-list';
   static const changePassword = '/change-password';
   static const balanceHistory = '/balance-history';
+  static const telegramLink = '/telegram-link';
 
   static Map<String, WidgetBuilder> get routes {
     return {
@@ -34,6 +36,7 @@ class AppRoutes {
       chatList: (context) => const ChatListScreen(),
       changePassword: (context) => const ChangePasswordScreen(),
       balanceHistory: (context) => const BalanceHistoryScreen(),
+      telegramLink: (context) => const TelegramLinkScreen(),
     };
   }
 }

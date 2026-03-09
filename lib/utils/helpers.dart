@@ -65,3 +65,13 @@ Future<void> launchPhone(String phone) async {
     await launchUrl(uri);
   }
 }
+
+/// Telegram profilga ochish (t.me/username)
+Future<void> launchTelegram(String username) async {
+  final clean = username.replaceAll('@', '').trim();
+  if (clean.isEmpty) return;
+  final uri = Uri.parse('https://t.me/$clean');
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+}

@@ -6,6 +6,7 @@ class ElonModel {
   final String? ownerName;
   final String? ownerPhone;
   final String? ownerAvatarUrl;
+  final String? ownerTelegramUsername;
   final String marka;
   final String? model;
   final int yil;
@@ -32,6 +33,7 @@ class ElonModel {
     this.ownerName,
     this.ownerPhone,
     this.ownerAvatarUrl,
+    this.ownerTelegramUsername,
     required this.marka,
     this.model,
     required this.yil,
@@ -63,6 +65,7 @@ class ElonModel {
       ownerName: user?['name'] as String?,
       ownerPhone: user?['phone'] as String?,
       ownerAvatarUrl: user?['avatar_url'] as String?,
+      ownerTelegramUsername: user?['telegram_username'] as String?,
       marka: json['marka'] as String,
       model: json['model'] as String?,
       yil: json['yil'] as int,

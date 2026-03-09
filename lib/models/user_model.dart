@@ -8,6 +8,10 @@ class UserModel {
   final String? phoneVerifiedAt;
   final String? createdAt;
   final String? updatedAt;
+  final int? telegramUserId;
+  final String? telegramUsername;
+  final String? telegramFirstName;
+  final String? telegramLastName;
 
   const UserModel({
     required this.id,
@@ -19,7 +23,13 @@ class UserModel {
     this.phoneVerifiedAt,
     this.createdAt,
     this.updatedAt,
+    this.telegramUserId,
+    this.telegramUsername,
+    this.telegramFirstName,
+    this.telegramLastName,
   });
+
+  bool get hasTelegramLinked => telegramUserId != null;
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
@@ -32,6 +42,10 @@ class UserModel {
       phoneVerifiedAt: json['phone_verified_at'] as String?,
       createdAt: json['created_at'] as String?,
       updatedAt: json['updated_at'] as String?,
+      telegramUserId: (json['telegram_user_id'] as num?)?.toInt(),
+      telegramUsername: json['telegram_username'] as String?,
+      telegramFirstName: json['telegram_first_name'] as String?,
+      telegramLastName: json['telegram_last_name'] as String?,
     );
   }
 
@@ -46,6 +60,10 @@ class UserModel {
       'phone_verified_at': phoneVerifiedAt,
       'created_at': createdAt,
       'updated_at': updatedAt,
+      'telegram_user_id': telegramUserId,
+      'telegram_username': telegramUsername,
+      'telegram_first_name': telegramFirstName,
+      'telegram_last_name': telegramLastName,
     };
   }
 }

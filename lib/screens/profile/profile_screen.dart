@@ -380,6 +380,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                                   ),
                             ),
+                            if (_user?.hasTelegramLinked == true && _user?.telegramUsername != null) ...[
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  PhosphorIcon(PhosphorIconsRegular.telegramLogo, size: 14, color: AppColors.primary),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    '@${_user!.telegramUsername}',
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: AppColors.primary,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -449,6 +465,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
+                  _buildMenuItem(
+                    context,
+                    icon: PhosphorIconsRegular.telegramLogo,
+                    title: 'Telegram hisobini ulash',
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.telegramLink)
+                        .then((_) => _loadUser(showLoading: false)),
+                  ),
                   _buildMenuItem(
                     context,
                     icon: PhosphorIconsRegular.wallet,
