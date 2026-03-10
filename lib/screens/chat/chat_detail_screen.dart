@@ -265,16 +265,27 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 
+  String _fmtMsgTime(String? iso) {
+    if (iso == null) return '';
+    try {
+      final dt = DateTime.parse(iso);
+      return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    } catch (_) {
+      return '';
+    }
+  }
+
   Widget _buildMessageContent(ConversationMessageModel msg, bool isMe) {
+    final fg = isMe ? Colors.white : Theme.of(context).colorScheme.onSurface;
+    final fgSec = fg.withValues(alpha: 0.6);
+    final time = _fmtMsgTime(msg.createdAt);
+
     if (msg.isImage && msg.mediaUrl != null) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           GestureDetector(
-            onTap: () => FullScreenImageViewer.show(
-              context,
-              urls: [msg.mediaUrl!],
-            ),
+            onTap: () => FullScreenImageViewer.show(context, urls: [msg.mediaUrl!]),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: AuthNetworkImage(
@@ -288,19 +299,18 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           ),
           if (msg.body != null && msg.body!.isNotEmpty) ...[
             const SizedBox(height: 4),
-            Text(
-              msg.body!,
-              style: TextStyle(
-                color: isMe ? Colors.white : Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
+            Text(msg.body!, style: TextStyle(color: fg)),
           ],
+          const SizedBox(height: 2),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: Text(time, style: TextStyle(fontSize: 10, color: fgSec)),
+          ),
         ],
       );
     }
 
     if (msg.isVoice && msg.mediaUrl != null) {
-      final fg = isMe ? Colors.white : Theme.of(context).colorScheme.onSurface;
       return _VoiceMessagePlayer(
         url: msg.mediaUrl!,
         isMe: isMe,
@@ -309,12 +319,16 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       );
     }
 
-    return Text(
-      msg.body ?? '',
-      style: TextStyle(
-        color: isMe ? Colors.white : Theme.of(context).colorScheme.onSurface,
-        fontSize: 16,
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(msg.body ?? '', style: TextStyle(color: fg, fontSize: 15.5)),
+        const SizedBox(height: 2),
+        Align(
+          alignment: Alignment.bottomRight,
+          child: Text(time, style: TextStyle(fontSize: 10, color: fgSec)),
+        ),
+      ],
     );
   }
 
@@ -464,16 +478,13 @@ class _VoiceMessagePlayerState extends State<_VoiceMessagePlayer> {
   Duration _duration = Duration.zero;
   Duration _position = Duration.zero;
 
-  String get _formatTime => '${_position.inMinutes}:${(_position.inSeconds % 60).toString().padLeft(2, '0')}';
+  String _fmt(Duration d) => '${d.inMinutes}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
 
-  String _formatCreatedAt(String? iso) {
+  String _fmtCreatedAt(String? iso) {
     if (iso == null) return '';
     try {
       final dt = DateTime.parse(iso);
-      final hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
-      final min = dt.minute.toString().padLeft(2, '0');
-      final ampm = dt.hour >= 12 ? 'PM' : 'AM';
-      return '$hour:$min $ampm';
+      return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
     } catch (_) {
       return '';
     }
@@ -482,14 +493,8 @@ class _VoiceMessagePlayerState extends State<_VoiceMessagePlayer> {
   @override
   void initState() {
     super.initState();
-    _loadCached();
     _player.onPlayerComplete.listen((_) {
-      if (mounted) {
-        setState(() {
-          _playing = false;
-          _position = Duration.zero;
-        });
-      }
+      if (mounted) setState(() { _playing = false; _position = Duration.zero; });
     });
     _player.onPlayerStateChanged.listen((state) {
       if (mounted && state == PlayerState.stopped) setState(() => _playing = false);
@@ -502,8 +507,9 @@ class _VoiceMessagePlayerState extends State<_VoiceMessagePlayer> {
     });
   }
 
-  Future<void> _loadCached() async {
-    setState(() => _loading = true);
+  Future<void> _ensureCached() async {
+    if (_cachedPath != null) return;
+    setState(() { _loading = true; _error = false; });
     final path = await MediaCacheService.instance.getCachedPath(
       widget.url,
       forceExtension: 'm4a',
@@ -526,130 +532,126 @@ class _VoiceMessagePlayerState extends State<_VoiceMessagePlayer> {
   Future<void> _togglePlay() async {
     if (_loading) return;
 
-    if (_error) {
-      await _loadCached();
-      if (_error) return;
-    }
-
     if (_playing) {
-      await _player.stop();
-      setState(() => _playing = false);
+      await _player.pause();
+      if (mounted) setState(() => _playing = false);
       return;
     }
 
+    if (_cachedPath == null) {
+      await _ensureCached();
+      if (_error || _cachedPath == null) return;
+    }
+
     try {
-      if (_cachedPath != null) {
-        final file = File(_cachedPath!);
-        if (await file.exists() && await file.length() > 0) {
-          await _player.play(DeviceFileSource(_cachedPath!));
-          if (mounted) setState(() => _playing = true);
+      final file = File(_cachedPath!);
+      if (await file.exists() && await file.length() > 0) {
+        if (_position > Duration.zero && _position < _duration) {
+          await _player.resume();
         } else {
-          if (mounted) setState(() => _error = true);
+          await _player.play(DeviceFileSource(_cachedPath!));
         }
+        if (mounted) setState(() => _playing = true);
       } else if (!widget.url.contains('/api/chat/media/')) {
         await _player.play(UrlSource(widget.url));
         if (mounted) setState(() => _playing = true);
       } else {
         if (mounted) setState(() => _error = true);
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) setState(() => _error = true);
     }
+  }
+
+  void _onSeek(double value) {
+    final pos = Duration(milliseconds: value.toInt());
+    _player.seek(pos);
+    setState(() => _position = pos);
   }
 
   @override
   Widget build(BuildContext context) {
     final fg = widget.foregroundColor;
-    final fgSecondary = fg.withValues(alpha: 0.8);
+    final fgSec = fg.withValues(alpha: 0.7);
+    final totalMs = _duration.inMilliseconds.toDouble();
+    final posMs = _position.inMilliseconds.toDouble().clamp(0.0, totalMs > 0 ? totalMs : 1.0);
 
-    return InkWell(
-      onTap: _loading ? null : _togglePlay,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              width: 44,
-              height: 44,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: _loading ? null : _togglePlay,
+            child: Container(
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
-                color: fg.withValues(alpha: 0.2),
+                color: _error ? AppColors.error.withValues(alpha: 0.2) : fg.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: _loading
-                  ? Center(
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: fg),
-                      ),
-                    )
-                  : PhosphorIcon(
-                      _playing ? PhosphorIconsRegular.pause : PhosphorIconsRegular.play,
-                      color: fg,
-                      size: 28,
-                    ),
+                  ? Center(child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: fg)))
+                  : _error
+                      ? GestureDetector(
+                          onTap: () { _cachedPath = null; _ensureCached(); },
+                          child: PhosphorIcon(PhosphorIconsRegular.arrowClockwise, color: _error ? AppColors.error : fg, size: 20),
+                        )
+                      : PhosphorIcon(
+                          _playing ? PhosphorIconsFill.pause : PhosphorIconsFill.play,
+                          color: fg,
+                          size: 22,
+                        ),
             ),
-            const SizedBox(width: 12),
-            Column(
+          ),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildWaveform(fg),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      _playing ? _formatTime : (_duration.inSeconds > 0 ? '${_duration.inMinutes}:${(_duration.inSeconds % 60).toString().padLeft(2, '0')}' : '0:00'),
-                      style: TextStyle(fontSize: 12, color: fgSecondary),
+                SizedBox(
+                  height: 20,
+                  child: SliderTheme(
+                    data: SliderThemeData(
+                      trackHeight: 3,
+                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+                      activeTrackColor: fg,
+                      inactiveTrackColor: fg.withValues(alpha: 0.25),
+                      thumbColor: fg,
+                      overlayColor: fg.withValues(alpha: 0.1),
                     ),
-                    if (widget.createdAt != null) ...[
-                      const SizedBox(width: 12),
+                    child: Slider(
+                      value: posMs,
+                      max: totalMs > 0 ? totalMs : 1,
+                      onChanged: totalMs > 0 ? _onSeek : null,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                       Text(
-                        _formatCreatedAt(widget.createdAt),
-                        style: TextStyle(fontSize: 11, color: fgSecondary),
+                        _playing || _position > Duration.zero ? _fmt(_position) : (_duration > Duration.zero ? _fmt(_duration) : '0:00'),
+                        style: TextStyle(fontSize: 11, color: fgSec),
                       ),
-                      const SizedBox(width: 4),
-                      PhosphorIcon(PhosphorIconsRegular.checks, size: 14, color: fgSecondary),
+                      if (_duration > Duration.zero) ...[
+                        Text(' / ', style: TextStyle(fontSize: 11, color: fgSec)),
+                        Text(_fmt(_duration), style: TextStyle(fontSize: 11, color: fgSec)),
+                      ],
+                      const Spacer(),
+                      if (widget.createdAt != null)
+                        Text(_fmtCreatedAt(widget.createdAt), style: TextStyle(fontSize: 10, color: fgSec)),
                     ],
-                  ],
+                  ),
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWaveform(Color color) {
-    const barCount = 24;
-    final baseHeights = List.generate(barCount, (i) {
-      final r = (i * 13) % 5 + 2;
-      return 6.0 + r * 2.5;
-    });
-
-    return SizedBox(
-      height: 28,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: List.generate(barCount, (i) {
-          final offset = _playing ? ((_position.inMilliseconds ~/ 80) + i) % 5 : 0;
-          final h = baseHeights[(i + offset) % barCount];
-          return Container(
-            width: 2.5,
-            height: h.clamp(4.0, 22.0),
-            margin: const EdgeInsets.symmetric(horizontal: 1),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.85),
-              borderRadius: BorderRadius.circular(1.5),
-            ),
-          );
-        }),
+          ),
+        ],
       ),
     );
   }

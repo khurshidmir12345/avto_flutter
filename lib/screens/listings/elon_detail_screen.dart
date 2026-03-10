@@ -327,104 +327,64 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
     final hasTelegram = elon.ownerTelegramUsername != null &&
         elon.ownerTelegramUsername!.trim().isNotEmpty;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSizes.paddingMedium),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppSizes.borderRadius),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.shadow.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Aloqa',
-            style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  letterSpacing: 0.5,
-                ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  formatPhone(elon.telefon),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                ),
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(AppSizes.paddingMedium),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(AppSizes.borderRadius),
+            boxShadow: [
+              BoxShadow(
+                color: theme.colorScheme.shadow.withValues(alpha: 0.08),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
-              if (canChat)
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: _openingChat ? null : () => _openChat(elon),
-                    borderRadius: BorderRadius.circular(14),
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: _openingChat
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : PhosphorIcon(
-                              PhosphorIconsRegular.chatCircle,
-                              color: AppColors.primary,
-                              size: 24,
-                            ),
-                    ),
-                  ),
-                ),
-              if (hasTelegram) ...[
-                if (canChat) const SizedBox(width: 8),
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () => launchTelegram(elon.ownerTelegramUsername!),
-                    borderRadius: BorderRadius.circular(14),
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: PhosphorIcon(
-                        PhosphorIconsRegular.telegramLogo,
-                        color: AppColors.primary,
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
             ],
           ),
-          const SizedBox(height: 12),
-          Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
+              Text(
+                'Aloqa',
+                style: theme.textTheme.labelMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      letterSpacing: 0.5,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      formatPhone(elon.telefon),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                    ),
+                  ),
+                  if (canChat)
+                    _buildIconBtn(
+                      onTap: _openingChat ? null : () => _openChat(elon),
+                      icon: _openingChat
+                          ? null
+                          : PhosphorIconsRegular.chatCircle,
+                      loading: _openingChat,
+                    ),
+                  if (hasTelegram) ...[
+                    if (canChat) const SizedBox(width: 8),
+                    _buildIconBtn(
+                      onTap: () => launchTelegram(elon.ownerTelegramUsername!),
+                      icon: PhosphorIconsRegular.telegramLogo,
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
                 child: FilledButton.icon(
                   onPressed: () => launchPhone(elon.telefon),
                   icon: PhosphorIcon(PhosphorIconsRegular.phone, size: 20, color: Colors.white),
@@ -433,68 +393,71 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     elevation: 0,
                   ),
                 ),
               ),
-              if (canChat) ...[
-                const SizedBox(width: 12),
-                OutlinedButton.icon(
-                  onPressed: _openingChat ? null : () => _openChat(elon),
-                  icon: PhosphorIcon(
-                    PhosphorIconsRegular.chatCircle,
-                    size: 20,
-                    color: AppColors.primary,
-                  ),
-                  label: Text(
-                    'Xabar',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    side: BorderSide(color: AppColors.primary.withValues(alpha: 0.6)),
-                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                ),
-              ],
-              if (hasTelegram) ...[
-                const SizedBox(width: 12),
-                OutlinedButton.icon(
-                  onPressed: () => launchTelegram(elon.ownerTelegramUsername!),
-                  icon: PhosphorIcon(
-                    PhosphorIconsRegular.telegramLogo,
-                    size: 20,
-                    color: AppColors.primary,
-                  ),
-                  label: Text(
-                    'Telegram',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    side: BorderSide(color: AppColors.primary.withValues(alpha: 0.6)),
-                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
+              if (canChat || hasTelegram) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    if (canChat)
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _openingChat ? null : () => _openChat(elon),
+                          icon: PhosphorIcon(PhosphorIconsRegular.chatCircle, size: 20, color: AppColors.primary),
+                          label: Text('Xabar', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.primary,
+                            side: BorderSide(color: AppColors.primary.withValues(alpha: 0.6)),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          ),
+                        ),
+                      ),
+                    if (canChat && hasTelegram) const SizedBox(width: 10),
+                    if (hasTelegram)
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => launchTelegram(elon.ownerTelegramUsername!),
+                          icon: Icon(Icons.send_rounded, size: 18, color: AppColors.primary),
+                          label: Text('Telegram', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.primary,
+                            side: BorderSide(color: AppColors.primary.withValues(alpha: 0.6)),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ],
             ],
           ),
-        ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIconBtn({VoidCallback? onTap, IconData? icon, bool loading = false}) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 1),
+          ),
+          child: loading
+              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+              : PhosphorIcon(icon!, color: AppColors.primary, size: 24),
+        ),
       ),
     );
   }

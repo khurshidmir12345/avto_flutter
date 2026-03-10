@@ -24,6 +24,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = true;
   bool _isUploadingAvatar = false;
   bool _hasNewBalanceHistory = false;
+  bool _balanceTopupEnabled = true;
 
   @override
   void initState() {
@@ -35,10 +36,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (showLoading) setState(() => _isLoading = true);
     final user = await _apiService.getCurrentUser();
     final hasNew = await _checkNewBalanceHistory();
+    final topupEnabled = await StorageService.getBalanceTopupEnabled();
     if (mounted) {
       setState(() {
         _user = user;
         _hasNewBalanceHistory = hasNew;
+        _balanceTopupEnabled = topupEnabled;
         _isLoading = false;
       });
     }
@@ -449,29 +452,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ],
                           ),
                         ),
-                        OutlinedButton(
-                          onPressed: () {},
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            side: const BorderSide(color: Colors.white70),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(AppSizes.borderRadius),
+                        if (_balanceTopupEnabled)
+                          OutlinedButton(
+                            onPressed: () => Navigator.pushNamed(context, AppRoutes.balanceTopup),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              side: const BorderSide(color: Colors.white70),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(AppSizes.borderRadius),
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                            child: const Text("To'ldirish"),
                           ),
-                          child: const Text("To'ldirish"),
-                        ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  _buildMenuItem(
-                    context,
-                    icon: PhosphorIconsRegular.telegramLogo,
-                    title: 'Telegram hisobini ulash',
-                    onTap: () => Navigator.pushNamed(context, AppRoutes.telegramLink)
-                        .then((_) => _loadUser(showLoading: false)),
-                  ),
+                  const SizedBox(height: 20),
+                  _buildTelegramCard(context),
+                  const SizedBox(height: 16),
                   _buildMenuItem(
                     context,
                     icon: PhosphorIconsRegular.wallet,
@@ -486,6 +485,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     title: "Mening e'lonlarim",
                     onTap: () => Navigator.pushNamed(context, AppRoutes.myElonlar),
                   ),
+                  _buildMenuItem(
+                    context,
+                    icon: PhosphorIconsRegular.megaphone,
+                    title: 'Reklamalar',
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.myAdvertisements),
+                  ),
                   _buildMenuItem(context, icon: PhosphorIconsRegular.heart, title: 'Sevimlilar'),
                   _buildMenuItem(
                     context,
@@ -499,7 +504,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     title: 'Sozlamalar',
                     onTap: _openThemeSettings,
                   ),
-                  _buildMenuItem(context, icon: PhosphorIconsRegular.info, title: 'Ilova haqida'),
+                  _buildMenuItem(
+                    context,
+                    icon: PhosphorIconsRegular.info,
+                    title: 'Ilova haqida',
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.about),
+                  ),
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
@@ -517,6 +527,99 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
           ),
+    );
+  }
+
+  Widget _buildTelegramCard(BuildContext context) {
+    final theme = Theme.of(context);
+    final isLinked = _user?.hasTelegramLinked == true;
+
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, AppRoutes.telegramLink)
+          .then((_) => _loadUser(showLoading: false)),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(AppSizes.borderRadius),
+          border: Border.all(
+            color: isLinked
+                ? AppColors.success.withValues(alpha: 0.3)
+                : AppColors.primary.withValues(alpha: 0.15),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: theme.colorScheme.shadow.withValues(alpha: 0.06),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: isLinked
+                    ? AppColors.success.withValues(alpha: 0.1)
+                    : AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.send_rounded,
+                size: 22,
+                color: isLinked ? AppColors.success : AppColors.primary,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Telegram',
+                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 2),
+                  if (isLinked && _user?.telegramUsername != null)
+                    Text(
+                      '@${_user!.telegramUsername}',
+                      style: theme.textTheme.bodySmall?.copyWith(color: AppColors.success),
+                    )
+                  else
+                    Text(
+                      'Hisobni ulash',
+                      style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+                    ),
+                ],
+              ),
+            ),
+            if (isLinked)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.success.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Ulangan',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: AppColors.success,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              )
+            else
+              PhosphorIcon(
+                PhosphorIconsRegular.caretRight,
+                color: theme.colorScheme.onSurfaceVariant,
+                size: 20,
+              ),
+          ],
+        ),
+      ),
     );
   }
 

@@ -50,6 +50,7 @@ class AppSizes {
 
 class ApiConstants {
   static const baseUrl = 'https://avtovodiy.uz/api';
+  // static const baseUrl = 'http://localhost:8080/api'; // local
   /// Rasm URL'lari uchun server manzili (relativ URL bo'lsa)
   static const imageBaseUrl = 'https://avtovodiy.uz';
   /// CDN URL — R2 rasmlari uchun (backend .env IMAGE_CDN_URL)
@@ -87,7 +88,14 @@ class ApiConstants {
   static const chatUsersUrl = '$baseUrl/chat/users';
 
   static const telegramLinkInfoUrl = '$baseUrl/telegram/link-info';
-  static const telegramLinkUrl = '$baseUrl/telegram/link';
+  static const telegramLinkUrl = '$baseUrl/auth/telegram/link';
+  static const telegramUnlinkUrl = '$baseUrl/auth/telegram/unlink';
+
+  // Reklamalar
+  static const advertisementsUrl = '$baseUrl/advertisements';
+  static const advertisementsPriceUrl = '$baseUrl/advertisements/price';
+  static const advertisementsMyUrl = '$baseUrl/advertisements/my';
+  static const advertisementsPresignedUrl = '$baseUrl/advertisements/presigned-url';
 }
 
 /// Bir e'lon uchun maksimal rasm soni

@@ -10,6 +10,10 @@ import '../screens/chat/chat_list_screen.dart';
 import '../screens/profile/balance_history_screen.dart';
 import '../screens/profile/change_password_screen.dart';
 import '../screens/profile/telegram_link_screen.dart';
+import '../screens/profile/balance_topup_screen.dart';
+import '../screens/profile/about_screen.dart';
+import '../screens/profile/my_advertisements_screen.dart';
+import '../screens/profile/create_advertisement_screen.dart';
 
 class AppRoutes {
   static const home = '/';
@@ -22,7 +26,11 @@ class AppRoutes {
   static const chatList = '/chat-list';
   static const changePassword = '/change-password';
   static const balanceHistory = '/balance-history';
+  static const balanceTopup = '/balance-topup';
   static const telegramLink = '/telegram-link';
+  static const about = '/about';
+  static const myAdvertisements = '/my-advertisements';
+  static const createAdvertisement = '/create-advertisement';
 
   static Map<String, WidgetBuilder> get routes {
     return {
@@ -36,7 +44,11 @@ class AppRoutes {
       chatList: (context) => const ChatListScreen(),
       changePassword: (context) => const ChangePasswordScreen(),
       balanceHistory: (context) => const BalanceHistoryScreen(),
+      balanceTopup: (context) => const BalanceTopupScreen(),
       telegramLink: (context) => const TelegramLinkScreen(),
+      about: (context) => const AboutScreen(),
+      myAdvertisements: (context) => const MyAdvertisementsScreen(),
+      createAdvertisement: (context) => const CreateAdvertisementScreen(),
     };
   }
 }

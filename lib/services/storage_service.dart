@@ -13,6 +13,7 @@ class StorageService {
   static const _balanceHistoryViewedAtKey = 'balance_history_viewed_at';
   static const _themeIdKey = 'theme_id';
   static const _darkModeKey = 'dark_mode';
+  static const _balanceTopupEnabledKey = 'balance_topup_enabled';
 
   static Future<void> saveToken(String token) async {
     await _storage.write(key: _tokenKey, value: token);
@@ -69,5 +70,14 @@ class StorageService {
 
   static Future<String?> getBalanceHistoryViewedAt() async {
     return await _storage.read(key: _balanceHistoryViewedAtKey);
+  }
+
+  static Future<void> saveBalanceTopupEnabled(bool value) async {
+    await _storage.write(key: _balanceTopupEnabledKey, value: value.toString());
+  }
+
+  static Future<bool> getBalanceTopupEnabled() async {
+    final v = await _storage.read(key: _balanceTopupEnabledKey);
+    return v != 'false';
   }
 }

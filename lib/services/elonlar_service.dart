@@ -19,9 +19,11 @@ class ElonlarService {
     };
   }
 
-  Future<List<ElonModel>> getList({
+  Future<({List<ElonModel> items, String? error})> getList({
     int? categoryId,
     String? marka,
+    String? model,
+    String? search,
     String? shahar,
     String? yoqilgiTuri,
     int? narxMin,
@@ -31,29 +33,37 @@ class ElonlarService {
     int page = 1,
     int perPage = 15,
   }) async {
-    final query = <String, String>{
-      'page': page.toString(),
-      'per_page': perPage.toString(),
-    };
-    if (categoryId != null) query['category_id'] = categoryId.toString();
-    if (marka != null && marka.isNotEmpty) query['marka'] = marka;
-    if (shahar != null && shahar.isNotEmpty) query['shahar'] = shahar;
-    if (yoqilgiTuri != null && yoqilgiTuri.isNotEmpty) query['yoqilgi_turi'] = yoqilgiTuri;
-    if (narxMin != null) query['narx_min'] = narxMin.toString();
-    if (narxMax != null) query['narx_max'] = narxMax.toString();
-    if (yilMin != null) query['yil_min'] = yilMin.toString();
-    if (yilMax != null) query['yil_max'] = yilMax.toString();
+    try {
+      final query = <String, String>{
+        'page': page.toString(),
+        'per_page': perPage.toString(),
+      };
+      if (categoryId != null) query['category_id'] = categoryId.toString();
+      if (marka != null && marka.isNotEmpty) query['marka'] = marka;
+      if (model != null && model.isNotEmpty) query['model'] = model;
+      if (search != null && search.isNotEmpty) query['search'] = search;
+      if (shahar != null && shahar.isNotEmpty) query['shahar'] = shahar;
+      if (yoqilgiTuri != null && yoqilgiTuri.isNotEmpty) query['yoqilgi_turi'] = yoqilgiTuri;
+      if (narxMin != null) query['narx_min'] = narxMin.toString();
+      if (narxMax != null) query['narx_max'] = narxMax.toString();
+      if (yilMin != null) query['yil_min'] = yilMin.toString();
+      if (yilMax != null) query['yil_max'] = yilMax.toString();
 
-    final uri = Uri.parse(ApiConstants.elonlarUrl).replace(queryParameters: query);
-    final response = await http.get(uri, headers: _headers);
+      final uri = Uri.parse(ApiConstants.elonlarUrl).replace(queryParameters: query);
+      final response = await http.get(uri, headers: _headers);
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final rawList = data['data'] as List? ?? [];
-      final list = rawList.map((e) => ElonModel.fromJson(e as Map<String, dynamic>)).toList();
-      return list;
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final rawList = data['data'] as List? ?? [];
+        final list = rawList.map((e) => ElonModel.fromJson(e as Map<String, dynamic>)).toList();
+        return (items: list, error: null);
+      }
+      return (items: <ElonModel>[], error: 'Server xatosi: ${response.statusCode}');
+    } on SocketException {
+      return (items: <ElonModel>[], error: 'Serverga ulanib bo\'lmadi. Internet aloqasini tekshiring.');
+    } catch (e) {
+      return (items: <ElonModel>[], error: 'Kutilmagan xatolik: $e');
     }
-    return [];
   }
 
   Future<ElonModel?> getById(int id) async {
@@ -232,19 +242,25 @@ class ElonlarService {
     }
   }
 
-  Future<List<ElonModel>> getMyList({int page = 1, int perPage = 15}) async {
-    final headers = await _authHeaders();
-    final uri = Uri.parse(ApiConstants.myElonlarUrl).replace(
-      queryParameters: {'page': page.toString(), 'per_page': perPage.toString()},
-    );
-    final response = await http.get(uri, headers: headers);
+  Future<({List<ElonModel> items, String? error})> getMyList({int page = 1, int perPage = 15}) async {
+    try {
+      final headers = await _authHeaders();
+      final uri = Uri.parse(ApiConstants.myElonlarUrl).replace(
+        queryParameters: {'page': page.toString(), 'per_page': perPage.toString()},
+      );
+      final response = await http.get(uri, headers: headers);
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final list = (data['data'] as List? ?? []).map((e) => ElonModel.fromJson(e as Map<String, dynamic>)).toList();
-      return list;
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final list = (data['data'] as List? ?? []).map((e) => ElonModel.fromJson(e as Map<String, dynamic>)).toList();
+        return (items: list, error: null);
+      }
+      return (items: <ElonModel>[], error: 'Server xatosi: ${response.statusCode}');
+    } on SocketException {
+      return (items: <ElonModel>[], error: 'Serverga ulanib bo\'lmadi');
+    } catch (e) {
+      return (items: <ElonModel>[], error: 'Xatolik: $e');
     }
-    return [];
   }
 
   /// PUT /api/elonlar/{id} — E'lon yangilash

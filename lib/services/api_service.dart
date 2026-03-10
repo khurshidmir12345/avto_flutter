@@ -117,6 +117,13 @@ class ApiService {
         print(
           '[ApiService.getCurrentUser] avatar_icon=${userJson['avatar_icon']} | avatar_url=${userJson['avatar_url']} | avat_url=${userJson['avat_url']}',
         );
+
+        final appConfig = data['app_config'] as Map<String, dynamic>?;
+        if (appConfig != null) {
+          final topupEnabled = appConfig['balance_topup_enabled'] as bool? ?? true;
+          await StorageService.saveBalanceTopupEnabled(topupEnabled);
+        }
+
         return UserModel.fromJson(userJson);
       }
     } catch (_) {}
@@ -308,6 +315,29 @@ class ApiService {
       }
       if (response.statusCode == 401) {
         return (success: false, message: 'Avval ilovaga kiring', user: null);
+      }
+      return (
+        success: false,
+        message: data['message'] as String? ?? 'Xatolik yuz berdi',
+        user: null,
+      );
+    } catch (e) {
+      return (success: false, message: 'Serverga ulanib bo\'lmadi', user: null);
+    }
+  }
+
+  // DELETE /api/auth/telegram/unlink
+  Future<({bool success, String message, UserModel? user})> unlinkTelegram() async {
+    try {
+      final headers = await _authHeaders();
+      final response = await http.delete(
+        Uri.parse(ApiConstants.telegramUnlinkUrl),
+        headers: headers,
+      );
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      if (response.statusCode == 200) {
+        final user = UserModel.fromJson(data['user'] as Map<String, dynamic>);
+        return (success: true, message: data['message'] as String, user: user);
       }
       return (
         success: false,

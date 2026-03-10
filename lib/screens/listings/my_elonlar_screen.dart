@@ -52,12 +52,12 @@ class _MyElonlarScreenState extends State<MyElonlarScreen> {
 
   Future<void> _loadInitial() async {
     setState(() => _loading = true);
-    final list = await _elonlarService.getMyList(page: 1, perPage: _perPage);
+    final result = await _elonlarService.getMyList(page: 1, perPage: _perPage);
     if (mounted) {
       setState(() {
-        _list = list;
+        _list = result.items;
         _page = 1;
-        _hasMore = list.length >= _perPage;
+        _hasMore = result.items.length >= _perPage;
         _loading = false;
         _loadingMore = false;
       });
@@ -66,12 +66,12 @@ class _MyElonlarScreenState extends State<MyElonlarScreen> {
 
   Future<void> _loadMore() async {
     setState(() => _loadingMore = true);
-    final nextList = await _elonlarService.getMyList(page: _page + 1, perPage: _perPage);
+    final result = await _elonlarService.getMyList(page: _page + 1, perPage: _perPage);
     if (!mounted) return;
     setState(() {
-      _list.addAll(nextList);
+      _list.addAll(result.items);
       _page++;
-      _hasMore = nextList.length >= _perPage;
+      _hasMore = result.items.length >= _perPage;
       _loadingMore = false;
     });
   }
