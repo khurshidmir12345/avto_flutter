@@ -42,7 +42,8 @@ class PhoneField extends StatelessWidget {
     final theme = Theme.of(context);
     return TextFormField(
       controller: controller,
-      keyboardType: TextInputType.phone,
+      keyboardType: TextInputType.number,
+      enableInteractiveSelection: true,
       style: TextStyle(color: theme.colorScheme.onSurface),
       inputFormatters: [
         FilteringTextInputFormatter.allow(RegExp(r'[\d ]')),

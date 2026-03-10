@@ -100,6 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     label: AppStrings.password,
                     controller: _passwordController,
                     obscureText: true,
+                    keyboardType: TextInputType.visiblePassword,
                     prefixIcon: PhosphorIconsRegular.lock,
                     validator: (value) {
                       if (value == null || value.isEmpty) return 'Parol kiriting';

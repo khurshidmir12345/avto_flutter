@@ -39,6 +39,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
       controller: widget.controller,
       obscureText: _isObscured,
       keyboardType: widget.keyboardType,
+      enableInteractiveSelection: true,
       validator: widget.validator,
       style: TextStyle(color: theme.colorScheme.onSurface),
       decoration: InputDecoration(

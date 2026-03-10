@@ -98,7 +98,7 @@ class ThemeController extends ChangeNotifier {
     ),
   ];
 
-  String _selectedId = 'C01';
+  String _selectedId = 'C02';
   bool _isDarkMode = false;
 
   bool get isDarkMode => _isDarkMode;

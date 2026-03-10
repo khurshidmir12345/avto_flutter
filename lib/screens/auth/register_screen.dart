@@ -109,6 +109,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   CustomTextField(
                     label: AppStrings.fullName,
                     controller: _nameController,
+                    keyboardType: TextInputType.name,
                     prefixIcon: PhosphorIconsRegular.user,
                     validator: (value) {
                       if (value == null || value.isEmpty) return 'Ism kiriting';
@@ -129,6 +130,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     label: 'Parol',
                     controller: _passwordController,
                     obscureText: true,
+                    keyboardType: TextInputType.visiblePassword,
                     prefixIcon: PhosphorIconsRegular.lock,
                     validator: (value) {
                       if (value == null || value.isEmpty) return 'Parol kiriting';
@@ -141,6 +143,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     label: 'Parolni tasdiqlang',
                     controller: _passwordConfirmController,
                     obscureText: true,
+                    keyboardType: TextInputType.visiblePassword,
                     prefixIcon: PhosphorIconsRegular.lock,
                     validator: (value) {
                       if (value == null || value.isEmpty) return 'Parolni tasdiqlang';

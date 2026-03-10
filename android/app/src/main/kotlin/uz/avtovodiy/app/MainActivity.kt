@@ -1,4 +1,4 @@
-package com.example.flutter_app
+package uz.avtovodiy.app
 
 import io.flutter.embedding.android.FlutterActivity
 

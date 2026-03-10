@@ -28,9 +28,8 @@ class _HomeScreenState extends State<HomeScreen> {
   List<AdvertisementModel> _ads = [];
   bool _loading = true;
 
-  final ScrollController _adScrollController = ScrollController();
+  final PageController _adPageController = PageController(viewportFraction: 0.65);
   Timer? _autoScrollTimer;
-  int _scrollStep = 0;
 
   static const _defaultAds = [
     _DefaultAd(
@@ -74,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _autoScrollTimer?.cancel();
-    _adScrollController.dispose();
+    _adPageController.dispose();
     super.dispose();
   }
 
@@ -99,18 +98,16 @@ class _HomeScreenState extends State<HomeScreen> {
   void _startAutoScroll() {
     _autoScrollTimer?.cancel();
     final total = _ads.isNotEmpty ? _ads.length : _defaultAds.length;
-    if (total <= 3) return;
+    if (total <= 1) return;
 
-    _autoScrollTimer = Timer.periodic(const Duration(seconds: 10), (_) {
-      if (!mounted || !_adScrollController.hasClients) return;
-      _scrollStep++;
-      final maxScroll = _adScrollController.position.maxScrollExtent;
-      final target = (_scrollStep * 120.0).clamp(0.0, maxScroll);
-      if (target >= maxScroll) _scrollStep = 0;
-      _adScrollController.animateTo(
-        _scrollStep == 0 ? 0 : target,
-        duration: const Duration(milliseconds: 600),
-        curve: Curves.easeInOut,
+    _autoScrollTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (!mounted || !_adPageController.hasClients) return;
+      final current = (_adPageController.page?.round() ?? 0);
+      final nextPage = (current + 1) % total;
+      _adPageController.animateToPage(
+        nextPage,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOutCubic,
       );
     });
   }
@@ -262,75 +259,225 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildAdCarousel(ThemeData theme) {
     final hasRealAds = _ads.isNotEmpty;
     final items = hasRealAds ? _ads.length : _defaultAds.length;
-    final screenWidth = MediaQuery.of(context).size.width;
-    const hPadding = 10.0;
-    const gap = 6.0;
-    final cardWidth = (screenWidth - hPadding * 2 - gap * 2) / 3;
+    final isDark = theme.brightness == Brightness.dark;
+    const bannerHeight = 200.0;
 
-    return SizedBox(
-      height: 110,
-      child: ListView.builder(
-        controller: _adScrollController,
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: hPadding),
-        itemCount: items,
-        itemBuilder: (context, index) {
-          if (hasRealAds) {
-            return _buildRealAdCard(_ads[index], theme, cardWidth);
-          }
-          return _buildDefaultAdCard(_defaultAds[index], theme, cardWidth);
-        },
+    return Column(
+      children: [
+        SizedBox(
+          height: bannerHeight,
+          child: PageView.builder(
+            controller: _adPageController,
+            padEnds: false,
+            itemCount: items,
+            itemBuilder: (context, index) {
+              if (hasRealAds) {
+                return _buildRealAdCard(_ads[index], theme, isDark);
+              }
+              return _buildDefaultAdCard(_defaultAds[index], theme, isDark);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRealAdCard(AdvertisementModel ad, ThemeData theme, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: GestureDetector(
+        onTap: () => _onAdTap(ad),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: isDark
+                    ? Colors.black.withValues(alpha: 0.4)
+                    : Colors.black.withValues(alpha: 0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (ad.imageUrl != null)
+                  CachedNetworkImage(
+                    imageUrl: ad.imageUrl!,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) => _adImagePlaceholder(),
+                    errorWidget: (_, __, ___) => _adImagePlaceholder(),
+                  )
+                else
+                  _adImagePlaceholder(),
+
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.25),
+                          Colors.black.withValues(alpha: 0.85),
+                        ],
+                        stops: const [0.0, 0.3, 0.6, 1.0],
+                      ),
+                    ),
+                  ),
+                ),
+
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.9),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'Yangi',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                ),
+
+                Positioned(
+                  left: 16,
+                  right: 16,
+                  bottom: 16,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        ad.title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          height: 1.2,
+                          shadows: [
+                            Shadow(color: Colors.black54, blurRadius: 6),
+                          ],
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (ad.description != null && ad.description!.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          ad.description!,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.85),
+                            fontSize: 12,
+                            height: 1.3,
+                            shadows: const [
+                              Shadow(color: Colors.black54, blurRadius: 4),
+                            ],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildRealAdCard(AdvertisementModel ad, ThemeData theme, double width) {
-    return GestureDetector(
-      onTap: () => _onAdTap(ad),
+  Widget _adImagePlaceholder() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppColors.primary, AppColors.primaryLight],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
+        child: PhosphorIcon(
+          PhosphorIconsRegular.megaphone,
+          size: 52,
+          color: Colors.white.withValues(alpha: 0.25),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDefaultAdCard(_DefaultAd ad, ThemeData theme, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
       child: Container(
-        width: width,
-        margin: const EdgeInsets.only(right: 6),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.4)
+                  : Colors.black.withValues(alpha: 0.1),
+              blurRadius: 20,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(20),
           child: Stack(
             fit: StackFit.expand,
             children: [
-              if (ad.imageUrl != null)
-                CachedNetworkImage(
-                  imageUrl: ad.imageUrl!,
-                  fit: BoxFit.cover,
-                  placeholder: (_, __) => Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [AppColors.primary, AppColors.primaryLight],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                  ),
-                  errorWidget: (_, __, ___) => Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [AppColors.primary, AppColors.primaryLight],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                    child: Center(
-                      child: PhosphorIcon(PhosphorIconsRegular.megaphone, size: 24, color: Colors.white30),
-                    ),
-                  ),
-                )
-              else
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [AppColors.primary, AppColors.primaryLight],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: ad.gradient,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
                 ),
+              ),
+
+              Positioned(
+                right: -20,
+                top: -20,
+                child: PhosphorIcon(
+                  ad.icon,
+                  size: 140,
+                  color: Colors.white.withValues(alpha: 0.07),
+                ),
+              ),
+              Positioned(
+                left: 24,
+                top: 28,
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: PhosphorIcon(
+                    ad.icon,
+                    size: 32,
+                    color: Colors.white.withValues(alpha: 0.9),
+                  ),
+                ),
+              ),
+
               Positioned.fill(
                 child: DecoratedBox(
                   decoration: BoxDecoration(
@@ -339,92 +486,80 @@ class _HomeScreenState extends State<HomeScreen> {
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        Colors.black.withValues(alpha: 0.65),
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.1),
+                        Colors.black.withValues(alpha: 0.5),
                       ],
-                      stops: const [0.3, 1.0],
+                      stops: const [0.0, 0.4, 0.65, 1.0],
                     ),
                   ),
                 ),
               ),
+
               Positioned(
-                left: 8,
-                right: 8,
-                bottom: 8,
-                child: Text(
-                  ad.title,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    shadows: [const Shadow(blurRadius: 3, color: Colors.black38)],
+                top: 12,
+                left: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                  child: const Text(
+                    'Yangi',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              ),
+
+              Positioned(
+                left: 16,
+                right: 16,
+                bottom: 16,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      ad.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        height: 1.2,
+                        shadows: [
+                          Shadow(color: Colors.black54, blurRadius: 6),
+                        ],
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (ad.description.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        ad.description,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.85),
+                          fontSize: 12,
+                          height: 1.3,
+                          shadows: const [
+                            Shadow(color: Colors.black54, blurRadius: 4),
+                          ],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildDefaultAdCard(_DefaultAd ad, ThemeData theme, double width) {
-    return Container(
-      width: width,
-      margin: const EdgeInsets.only(right: 6),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: ad.gradient,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -12,
-            bottom: -12,
-            child: PhosphorIcon(ad.icon, size: 64, color: Colors.white.withValues(alpha: 0.1)),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: PhosphorIcon(ad.icon, size: 18, color: Colors.white),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  ad.title,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  ad.description,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: Colors.white70,
-                    fontSize: 9,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
