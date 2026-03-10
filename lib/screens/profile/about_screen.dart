@@ -245,7 +245,7 @@ class AboutScreen extends StatelessWidget {
   }
 
   Future<void> _openTelegram(BuildContext context) async {
-    final uri = Uri.parse('https://t.me/avtovodiy_admin');
+    final uri = Uri.parse('https://t.me/avto_vodiyuz');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
