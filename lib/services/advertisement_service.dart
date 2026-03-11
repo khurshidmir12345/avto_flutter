@@ -29,7 +29,7 @@ class AdvertisementService {
       );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return (data['data'] as List)
+        return (data['data'] as List? ?? [])
             .map((e) => AdvertisementModel.fromJson(e as Map<String, dynamic>))
             .toList();
       }
@@ -67,7 +67,7 @@ class AdvertisementService {
       final response = await http.get(uri, headers: headers);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final items = (data['data'] as List)
+        final items = (data['data'] as List? ?? [])
             .map((e) => AdvertisementModel.fromJson(e as Map<String, dynamic>))
             .toList();
         return (items: items, error: null);

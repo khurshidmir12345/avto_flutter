@@ -21,7 +21,7 @@ class ApiService {
   }
 
   // POST /api/auth/register
-  Future<({bool success, String message})> register(
+  Future<({bool success, String message, int statusCode})> register(
       String name, String phone, String password, String passwordConfirmation) async {
     try {
       final response = await http.post(
@@ -37,22 +37,22 @@ class ApiService {
 
       final data = jsonDecode(response.body);
 
-      if (response.statusCode == 201) {
-        return (success: true, message: data['message'] as String);
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return (success: true, message: data['message'] as String, statusCode: response.statusCode);
       }
 
       final errors = data['errors'] as Map<String, dynamic>?;
       final errorMsg = errors?.values.first is List
           ? (errors!.values.first as List).first as String
           : data['message'] as String;
-      return (success: false, message: errorMsg);
+      return (success: false, message: errorMsg, statusCode: response.statusCode);
     } catch (e) {
-      return (success: false, message: 'Serverga ulanib bo\'lmadi');
+      return (success: false, message: 'Serverga ulanib bo\'lmadi', statusCode: 0);
     }
   }
 
   // POST /api/auth/login — parol bilan
-  Future<({bool success, String message, UserModel? user, String? token})> login(
+  Future<({bool success, String message, UserModel? user, String? token, int statusCode})> login(
       String phone, String password) async {
     try {
       final response = await http.post(
@@ -67,12 +67,12 @@ class ApiService {
         final user = UserModel.fromJson(data['user']);
         final token = data['token'] as String;
         await StorageService.saveToken(token);
-        return (success: true, message: data['message'] as String, user: user, token: token);
+        return (success: true, message: data['message'] as String, user: user, token: token, statusCode: 200);
       }
 
-      return (success: false, message: data['message'] as String, user: null, token: null);
+      return (success: false, message: data['message'] as String, user: null, token: null, statusCode: response.statusCode);
     } catch (e) {
-      return (success: false, message: 'Serverga ulanib bo\'lmadi', user: null, token: null);
+      return (success: false, message: 'Serverga ulanib bo\'lmadi', user: null, token: null, statusCode: 0);
     }
   }
 
@@ -365,5 +365,20 @@ class ApiService {
     } catch (_) {}
 
     return false;
+  }
+
+  // GET /api/support/bot-info
+  Future<String?> getSupportBotLink() async {
+    try {
+      final response = await http.get(
+        Uri.parse(ApiConstants.supportBotInfoUrl),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return data['bot_link'] as String?;
+      }
+    } catch (_) {}
+    return null;
   }
 }

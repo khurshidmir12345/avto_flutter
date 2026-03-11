@@ -37,7 +37,7 @@ class MediaCacheService {
     } else {
       ext = 'bin';
     }
-    return '${hash}_$ext';
+    return '${hash}.$ext';
   }
 
   bool _needsAuth(String url) => url.contains('/api/chat/media/');

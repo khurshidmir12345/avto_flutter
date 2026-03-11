@@ -49,8 +49,8 @@ class AppSizes {
 }
 
 class ApiConstants {
-  static const baseUrl = 'https://avtovodiy.uz/api';
-  static const imageBaseUrl = 'https://avtovodiy.uz';
+  static const baseUrl = 'http://localhost:8080/api';
+  static const imageBaseUrl = 'http://localhost:8080';
   static const imageCdnUrl = 'https://img.avtovodiy.uz';
   /// Laravel storage link: '/storage'. API /uploads/... qaytarsa, /storage/uploads/... bo'ladi.
   /// 404 bo'lsa: '' qiling. 403 bo'lsa: backend permissions tekshiring.
@@ -86,6 +86,9 @@ class ApiConstants {
   static const telegramLinkInfoUrl = '$baseUrl/telegram/link-info';
   static const telegramLinkUrl = '$baseUrl/auth/telegram/link';
   static const telegramUnlinkUrl = '$baseUrl/auth/telegram/unlink';
+
+  // Support bot
+  static const supportBotInfoUrl = '$baseUrl/support/bot-info';
 
   // Reklamalar
   static const advertisementsUrl = '$baseUrl/advertisements';

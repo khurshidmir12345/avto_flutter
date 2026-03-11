@@ -238,6 +238,7 @@ class _MyElonlarScreenState extends State<MyElonlarScreen> {
                   ),
                 ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'my_elonlar_fab',
         onPressed: () async {
           await Navigator.pushNamed(context, AppRoutes.createElon);
           _loadInitial();

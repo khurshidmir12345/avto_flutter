@@ -66,6 +66,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
             ),
       floatingActionButton: widget.embeddedInTab
           ? FloatingActionButton.small(
+              heroTag: 'chat_fab',
               onPressed: () async {
                 final conv = await Navigator.push<ConversationModel>(
                   context,
@@ -80,7 +81,18 @@ class _ChatListScreenState extends State<ChatListScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _list.isEmpty
-              ? _emptyState(context)
+              ? RefreshIndicator(
+                  onRefresh: _load,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) => SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                        child: _emptyState(context),
+                      ),
+                    ),
+                  ),
+                )
               : RefreshIndicator(
                   onRefresh: _load,
                   child: ListView.builder(
@@ -126,38 +138,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
   Widget _chatTile(BuildContext context, ConversationModel conv) {
     final user = conv.otherUser;
     final preview = conv.lastMessage?.previewText ?? 'Chat boshlandi';
+    final hasUnread = conv.unreadCount > 0;
+    final theme = Theme.of(context);
 
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      leading: CircleAvatar(
-        radius: 28,
-        backgroundColor: AppColors.primaryLight.withValues(alpha: 0.3),
-        backgroundImage: user.avatarUrl != null && user.avatarUrl!.isNotEmpty
-            ? CachedNetworkImageProvider(user.avatarUrl!)
-            : null,
-        child: user.avatarUrl == null || user.avatarUrl!.isEmpty
-            ? Text(
-                user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
-                style: TextStyle(color: AppColors.primary, fontSize: 20),
-              )
-            : null,
-      ),
-      title: Text(
-        user.name,
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-      ),
-      subtitle: Text(
-        preview,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
-      ),
-      trailing: conv.lastMessageAt != null
-          ? Text(
-              _formatTime(conv.lastMessageAt!),
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
-            )
-          : null,
+    return InkWell(
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
@@ -167,6 +151,98 @@ class _ChatListScreenState extends State<ChatListScreen> {
           ),
         ),
       ).then((_) => _load()),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 28,
+              backgroundColor: AppColors.primaryLight.withValues(alpha: 0.3),
+              backgroundImage: user.avatarUrl != null && user.avatarUrl!.isNotEmpty
+                  ? CachedNetworkImageProvider(user.avatarUrl!)
+                  : null,
+              child: user.avatarUrl == null || user.avatarUrl!.isEmpty
+                  ? Text(
+                      user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                      style: TextStyle(color: AppColors.primary, fontSize: 20),
+                    )
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          user.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontWeight: hasUnread ? FontWeight.w700 : FontWeight.w600,
+                            fontSize: 16,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                      ),
+                      if (conv.lastMessageAt != null)
+                        Text(
+                          _formatTime(conv.lastMessageAt!),
+                          style: TextStyle(
+                            color: hasUnread ? AppColors.primary : theme.colorScheme.onSurfaceVariant,
+                            fontSize: 12,
+                            fontWeight: hasUnread ? FontWeight.w600 : FontWeight.normal,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          preview,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: hasUnread
+                                ? theme.colorScheme.onSurface
+                                : theme.colorScheme.onSurfaceVariant,
+                            fontSize: 14,
+                            fontWeight: hasUnread ? FontWeight.w600 : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                      if (hasUnread) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          constraints: const BoxConstraints(minWidth: 22),
+                          child: Text(
+                            conv.unreadCount > 99 ? '99+' : '${conv.unreadCount}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

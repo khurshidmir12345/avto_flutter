@@ -75,15 +75,20 @@ class _OtpScreenState extends State<OtpScreen>
   }
 
   void _showSmsHelpModal() {
+    final theme = Theme.of(context);
+    final surfaceColor = theme.colorScheme.surface;
+    final cardColor = theme.colorScheme.surfaceContainerHighest;
+    final borderColor = theme.colorScheme.outlineVariant;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         padding: const EdgeInsets.all(AppSizes.paddingLarge),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        decoration: BoxDecoration(
+          color: surfaceColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: SafeArea(
           child: Column(
@@ -96,22 +101,22 @@ class _OtpScreenState extends State<OtpScreen>
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 24),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
               Text(
                 'SMS kod kelmayaptimi?',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
               ),
               const SizedBox(height: 8),
               Text(
                 'Quyidagi sabablar ko\'pchilikda uchraydi:',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
               ),
               const SizedBox(height: 24),
@@ -123,6 +128,8 @@ class _OtpScreenState extends State<OtpScreen>
                     'Bizdan yuborilgan SMS 4546 raqamdan keladi va ko\'p hollarda shu papkaga tushib qoladi. '
                     'Ko\'pchilik bu joyni ko\'rmaydi. Telefon sozlamalarida SMS → Spam papkasini tekshiring va '
                     '4546 raqamdan kelgan xabarni chiqarib qo\'ying.',
+                cardColor: cardColor,
+                borderColor: borderColor,
               ),
               const SizedBox(height: 16),
               _buildReasonCard(
@@ -131,6 +138,8 @@ class _OtpScreenState extends State<OtpScreen>
                 description:
                     'Agar Uzmobile operatoridan foydalanayotgan bo\'lsangiz va balansingizda mablag\' bo\'lmasa, '
                     'SIM karta SMS qabul qilmaydi. Balansingizni tekshiring va kamida bir oz mablag\' qo\'shing.',
+                cardColor: cardColor,
+                borderColor: borderColor,
               ),
               const SizedBox(height: 24),
               CustomButton(
@@ -148,13 +157,16 @@ class _OtpScreenState extends State<OtpScreen>
     required IconData icon,
     required String title,
     required String description,
+    required Color cardColor,
+    required Color borderColor,
   }) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(AppSizes.paddingMedium),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: cardColor,
         borderRadius: BorderRadius.circular(AppSizes.borderRadius),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: borderColor),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,17 +179,15 @@ class _OtpScreenState extends State<OtpScreen>
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
-                    fontSize: 15,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   description,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                     height: 1.4,
                   ),
                 ),
@@ -271,8 +281,9 @@ class _OtpScreenState extends State<OtpScreen>
     return Scaffold(
       appBar: AppBar(title: const Text(AppStrings.otpVerify)),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSizes.paddingLarge),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: Column(
             children: [
               const SizedBox(height: 32),
@@ -288,7 +299,7 @@ class _OtpScreenState extends State<OtpScreen>
               Text(
                 formatPhone(_phone),
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
               ),
               const SizedBox(height: 40),
@@ -310,7 +321,7 @@ class _OtpScreenState extends State<OtpScreen>
                       decoration: InputDecoration(
                         counterText: '',
                         filled: true,
-                        fillColor: AppColors.surface,
+                        fillColor: Theme.of(context).colorScheme.surface,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(AppSizes.borderRadius),
                           borderSide: BorderSide(color: AppColors.primary),
@@ -331,6 +342,12 @@ class _OtpScreenState extends State<OtpScreen>
                     ),
                   );
                 }),
+              ),
+              const SizedBox(height: 24),
+              CustomButton(
+                text: AppStrings.verify,
+                onPressed: _verifyOtp,
+                isLoading: _isLoading,
               ),
               const SizedBox(height: 20),
               FadeTransition(
@@ -373,7 +390,7 @@ class _OtpScreenState extends State<OtpScreen>
               Text(
                 "Qayta yuborish: $_countdownText",
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w600,
                     ),
               ),
@@ -390,11 +407,6 @@ class _OtpScreenState extends State<OtpScreen>
                       : const Text("Kodni qayta yuborish"),
                 ),
               const SizedBox(height: 32),
-              CustomButton(
-                text: AppStrings.verify,
-                onPressed: _verifyOtp,
-                isLoading: _isLoading,
-              ),
             ],
           ),
         ),

@@ -4,7 +4,7 @@ import '../../services/api_service.dart';
 import '../../services/storage_service.dart';
 
 /// Ilova ochilganda token mavjudligini tekshiradi.
-/// Token saqlangan va haqiqiy bo'lsa — Home, aks holda — Login.
+/// Token saqlangan va haqiqiy bo'lsa — Home, aks holda — Register.
 class AuthCheckScreen extends StatefulWidget {
   const AuthCheckScreen({super.key});
 
@@ -26,7 +26,7 @@ class _AuthCheckScreenState extends State<AuthCheckScreen> {
 
     final token = await StorageService.getToken();
     if (token == null || token.isEmpty) {
-      _navigateToLogin();
+      _navigateToRegister();
       return;
     }
 
@@ -37,12 +37,12 @@ class _AuthCheckScreenState extends State<AuthCheckScreen> {
       Navigator.pushReplacementNamed(context, AppRoutes.home);
     } else {
       await StorageService.deleteToken();
-      _navigateToLogin();
+      _navigateToRegister();
     }
   }
 
-  void _navigateToLogin() {
-    Navigator.pushReplacementNamed(context, AppRoutes.login);
+  void _navigateToRegister() {
+    Navigator.pushReplacementNamed(context, AppRoutes.register);
   }
 
   @override

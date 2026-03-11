@@ -182,7 +182,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           TextButton(
             onPressed: () {
-              if (formKey.currentState!.validate()) {
+              if (formKey.currentState?.validate() ?? false) {
                 Navigator.pop(context, controller.text.trim());
               }
             },
@@ -191,6 +191,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
     );
+
+    controller.dispose();
 
     if (newName == null || newName == _user?.name) return;
 

@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:audioplayers/audioplayers.dart';
+import 'package:just_audio/just_audio.dart' as ja;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -11,6 +11,7 @@ import '../../models/conversation_message_model.dart';
 import '../../services/api_service.dart';
 import '../../services/chat_service.dart';
 import '../../services/media_cache_service.dart';
+import '../../services/storage_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/helpers.dart';
 import '../../widgets/auth_network_image.dart';
@@ -275,6 +276,24 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
   }
 
+  Widget _buildTimeRow(String time, bool isMe, bool readAt, Color fgSec) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Text(time, style: TextStyle(fontSize: 10, color: fgSec)),
+        if (isMe) ...[
+          const SizedBox(width: 3),
+          PhosphorIcon(
+            readAt ? PhosphorIconsFill.checks : PhosphorIconsRegular.check,
+            size: 14,
+            color: readAt ? fgSec : fgSec.withValues(alpha: 0.5),
+          ),
+        ],
+      ],
+    );
+  }
+
   Widget _buildMessageContent(ConversationMessageModel msg, bool isMe) {
     final fg = isMe ? Colors.white : Theme.of(context).colorScheme.onSurface;
     final fgSec = fg.withValues(alpha: 0.6);
@@ -304,18 +323,27 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           const SizedBox(height: 2),
           Align(
             alignment: Alignment.bottomRight,
-            child: Text(time, style: TextStyle(fontSize: 10, color: fgSec)),
+            child: _buildTimeRow(time, isMe, msg.readAt, fgSec),
           ),
         ],
       );
     }
 
     if (msg.isVoice && msg.mediaUrl != null) {
-      return _VoiceMessagePlayer(
-        url: msg.mediaUrl!,
-        isMe: isMe,
-        foregroundColor: fg,
-        createdAt: msg.createdAt,
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _VoiceMessagePlayer(
+            url: msg.mediaUrl!,
+            isMe: isMe,
+            foregroundColor: fg,
+            createdAt: null,
+          ),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: _buildTimeRow(_fmtMsgTime(msg.createdAt), isMe, msg.readAt, fgSec),
+          ),
+        ],
       );
     }
 
@@ -326,7 +354,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         const SizedBox(height: 2),
         Align(
           alignment: Alignment.bottomRight,
-          child: Text(time, style: TextStyle(fontSize: 10, color: fgSec)),
+          child: _buildTimeRow(time, isMe, msg.readAt, fgSec),
         ),
       ],
     );
@@ -470,11 +498,11 @@ class _VoiceMessagePlayer extends StatefulWidget {
 }
 
 class _VoiceMessagePlayerState extends State<_VoiceMessagePlayer> {
-  final _player = AudioPlayer();
-  bool _playing = false;
+  late final ja.AudioPlayer _player;
   String? _cachedPath;
   bool _loading = false;
   bool _error = false;
+  bool _sourceSet = false;
   Duration _duration = Duration.zero;
   Duration _position = Duration.zero;
 
@@ -493,33 +521,68 @@ class _VoiceMessagePlayerState extends State<_VoiceMessagePlayer> {
   @override
   void initState() {
     super.initState();
-    _player.onPlayerComplete.listen((_) {
-      if (mounted) setState(() { _playing = false; _position = Duration.zero; });
-    });
-    _player.onPlayerStateChanged.listen((state) {
-      if (mounted && state == PlayerState.stopped) setState(() => _playing = false);
-    });
-    _player.onDurationChanged.listen((d) {
-      if (mounted) setState(() => _duration = d);
-    });
-    _player.onPositionChanged.listen((p) {
+    _player = ja.AudioPlayer();
+    _player.positionStream.listen((p) {
       if (mounted) setState(() => _position = p);
+    });
+    _player.durationStream.listen((d) {
+      if (mounted && d != null) setState(() => _duration = d);
+    });
+    _player.playerStateStream.listen((state) {
+      if (!mounted) return;
+      if (state.processingState == ja.ProcessingState.completed) {
+        _player.seek(Duration.zero);
+        _player.pause();
+        setState(() => _position = Duration.zero);
+      }
     });
   }
 
-  Future<void> _ensureCached() async {
-    if (_cachedPath != null) return;
+  Future<void> _prepareSource() async {
+    if (_sourceSet) return;
     setState(() { _loading = true; _error = false; });
-    final path = await MediaCacheService.instance.getCachedPath(
-      widget.url,
-      forceExtension: 'm4a',
-    );
-    if (mounted) {
-      setState(() {
-        _cachedPath = path;
-        _loading = false;
-        _error = path == null;
-      });
+
+    try {
+      // 1) Avval cache ga yuklab ko'rish
+      final cached = await MediaCacheService.instance.getCachedPath(
+        widget.url,
+        forceExtension: 'm4a',
+      );
+
+      if (!mounted) return;
+
+      if (cached != null) {
+        _cachedPath = cached;
+        final file = File(cached);
+        if (await file.exists() && await file.length() > 0) {
+          try {
+            await _player.setFilePath(cached);
+            _sourceSet = true;
+            setState(() => _loading = false);
+            return;
+          } catch (_) {
+            // Fayl player da ochilmadi, URL orqali harakat qilamiz
+          }
+        }
+      }
+
+      // 2) Cache ishlamadi — URL orqali to'g'ridan-to'g'ri stream
+      if (widget.url.contains('/api/chat/media/')) {
+        final token = await StorageService.getToken();
+        await _player.setAudioSource(
+          ja.AudioSource.uri(
+            Uri.parse(widget.url),
+            headers: {if (token != null) 'Authorization': 'Bearer $token'},
+          ),
+        );
+      } else {
+        await _player.setUrl(widget.url);
+      }
+      _sourceSet = true;
+      if (mounted) setState(() => _loading = false);
+    } catch (e) {
+      debugPrint('VoicePlayer error: $e | url=${widget.url}');
+      if (mounted) setState(() { _loading = false; _error = true; });
     }
   }
 
@@ -532,41 +595,27 @@ class _VoiceMessagePlayerState extends State<_VoiceMessagePlayer> {
   Future<void> _togglePlay() async {
     if (_loading) return;
 
-    if (_playing) {
+    if (_player.playing) {
       await _player.pause();
-      if (mounted) setState(() => _playing = false);
       return;
     }
 
-    if (_cachedPath == null) {
-      await _ensureCached();
-      if (_error || _cachedPath == null) return;
+    if (!_sourceSet) {
+      await _prepareSource();
+      if (_error || !_sourceSet) return;
     }
 
-    try {
-      final file = File(_cachedPath!);
-      if (await file.exists() && await file.length() > 0) {
-        if (_position > Duration.zero && _position < _duration) {
-          await _player.resume();
-        } else {
-          await _player.play(DeviceFileSource(_cachedPath!));
-        }
-        if (mounted) setState(() => _playing = true);
-      } else if (!widget.url.contains('/api/chat/media/')) {
-        await _player.play(UrlSource(widget.url));
-        if (mounted) setState(() => _playing = true);
-      } else {
-        if (mounted) setState(() => _error = true);
-      }
-    } catch (_) {
-      if (mounted) setState(() => _error = true);
-    }
+    await _player.play();
   }
 
   void _onSeek(double value) {
-    final pos = Duration(milliseconds: value.toInt());
-    _player.seek(pos);
-    setState(() => _position = pos);
+    _player.seek(Duration(milliseconds: value.toInt()));
+  }
+
+  Future<void> _retry() async {
+    _sourceSet = false;
+    _cachedPath = null;
+    await _prepareSource();
   }
 
   @override
@@ -575,6 +624,7 @@ class _VoiceMessagePlayerState extends State<_VoiceMessagePlayer> {
     final fgSec = fg.withValues(alpha: 0.7);
     final totalMs = _duration.inMilliseconds.toDouble();
     final posMs = _position.inMilliseconds.toDouble().clamp(0.0, totalMs > 0 ? totalMs : 1.0);
+    final isPlaying = _player.playing;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
@@ -582,7 +632,7 @@ class _VoiceMessagePlayerState extends State<_VoiceMessagePlayer> {
         mainAxisSize: MainAxisSize.min,
         children: [
           GestureDetector(
-            onTap: _loading ? null : _togglePlay,
+            onTap: _loading ? null : (_error ? _retry : _togglePlay),
             child: Container(
               width: 40,
               height: 40,
@@ -593,12 +643,9 @@ class _VoiceMessagePlayerState extends State<_VoiceMessagePlayer> {
               child: _loading
                   ? Center(child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: fg)))
                   : _error
-                      ? GestureDetector(
-                          onTap: () { _cachedPath = null; _ensureCached(); },
-                          child: PhosphorIcon(PhosphorIconsRegular.arrowClockwise, color: _error ? AppColors.error : fg, size: 20),
-                        )
+                      ? PhosphorIcon(PhosphorIconsRegular.arrowClockwise, color: AppColors.error, size: 20)
                       : PhosphorIcon(
-                          _playing ? PhosphorIconsFill.pause : PhosphorIconsFill.play,
+                          isPlaying ? PhosphorIconsFill.pause : PhosphorIconsFill.play,
                           color: fg,
                           size: 22,
                         ),
@@ -635,7 +682,7 @@ class _VoiceMessagePlayerState extends State<_VoiceMessagePlayer> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        _playing || _position > Duration.zero ? _fmt(_position) : (_duration > Duration.zero ? _fmt(_duration) : '0:00'),
+                        isPlaying || _position > Duration.zero ? _fmt(_position) : (_duration > Duration.zero ? _fmt(_duration) : '0:00'),
                         style: TextStyle(fontSize: 11, color: fgSec),
                       ),
                       if (_duration > Duration.zero) ...[

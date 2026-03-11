@@ -113,9 +113,12 @@ class _ListingsScreenState extends State<ListingsScreen> {
   }
 
   Future<void> _onRefresh() async {
-    // Birinchi tortish: search ochiladi (reload yo'q). Ikkinchi tortish: reload.
+    // Birinchi tortish: faqat search ochiladi. Ikkinchi tortish: reload.
     if (!_searchExpanded) {
       setState(() => _searchExpanded = true);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _searchFocusNode.requestFocus();
+      });
       return;
     }
     await _loadInitial();
@@ -234,6 +237,7 @@ class _ListingsScreenState extends State<ListingsScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'listings_fab',
         onPressed: () async {
           await Navigator.pushNamed(context, AppRoutes.createElon);
           _loadInitial();

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../config/routes.dart';
 import '../../services/api_service.dart';
 import '../../utils/constants.dart';
@@ -23,6 +24,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _apiService = ApiService();
   bool _isLoading = false;
+  String? _supportBotLink;
 
   void _onPasswordChanged() => setState(() {});
 
@@ -31,6 +33,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.initState();
     _passwordController.addListener(_onPasswordChanged);
     _passwordConfirmController.addListener(_onPasswordChanged);
+    _loadSupportBot();
   }
 
   @override
@@ -44,8 +47,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
+  Future<void> _loadSupportBot() async {
+    final link = await _apiService.getSupportBotLink();
+    if (mounted) setState(() => _supportBotLink = link);
+  }
+
   Future<void> _register() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!(_formKey.currentState?.validate() ?? false)) return;
 
     setState(() => _isLoading = true);
 
@@ -61,6 +69,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = false);
 
     if (!mounted) return;
+
+    if (result.statusCode == 409) {
+      Navigator.pushReplacementNamed(
+        context,
+        AppRoutes.login,
+        arguments: {
+          'info': 'Sizning raqamingizdan oldin hisob yaratilgan. '
+              'Telefon raqam va parol kiritib kiring.',
+          'phone': _phoneController.text,
+        },
+      );
+      return;
+    }
 
     final messageLower = result.message.toLowerCase();
     final shouldOpenOtp = result.success ||
@@ -84,10 +105,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  Future<void> _openSupport() async {
+    if (_supportBotLink == null) return;
+    final uri = Uri.tryParse(_supportBotLink!);
+    if (uri != null && await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.register)),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -95,15 +124,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Form(
               key: _formKey,
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  PhosphorIcon(PhosphorIconsRegular.userPlus, size: 64, color: AppColors.primary),
-                  const SizedBox(height: 24),
+                  PhosphorIcon(PhosphorIconsRegular.car, size: 80, color: AppColors.primary),
+                  const SizedBox(height: 12),
+                  Text(
+                    AppStrings.appName,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   Text(
                     "Yangi hisob yaratish",
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 32),
                   CustomTextField(
@@ -166,10 +203,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     children: [
                       Text(
                         "Hisobingiz bormi? ",
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                       ),
                       GestureDetector(
-                        onTap: () => Navigator.pop(context),
+                        onTap: () => Navigator.pushNamed(context, AppRoutes.login),
                         child: Text(
                           AppStrings.login,
                           style: TextStyle(
@@ -180,11 +217,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ],
                   ),
+                  if (_supportBotLink != null) ...[
+                    const SizedBox(height: 20),
+                    _buildSupportLink(theme),
+                  ],
                 ],
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSupportLink(ThemeData theme) {
+    return GestureDetector(
+      onTap: _openSupport,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PhosphorIcon(
+            PhosphorIconsRegular.telegramLogo,
+            size: 16,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            'Yordam kerakmi?',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../config/routes.dart';
 import '../../services/api_service.dart';
 import '../../utils/constants.dart';
@@ -21,6 +22,10 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _apiService = ApiService();
   bool _isLoading = false;
+  bool _didInitArgs = false;
+  String? _infoBanner;
+  String? _errorBanner;
+  String? _supportBotLink;
 
   void _onPasswordChanged() => setState(() {});
 
@@ -28,6 +33,21 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     _passwordController.addListener(_onPasswordChanged);
+    _loadSupportBot();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didInitArgs) return;
+    _didInitArgs = true;
+
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    if (args != null) {
+      _infoBanner = args['info'] as String?;
+      final phone = args['phone'] as String?;
+      if (phone != null) _phoneController.text = phone;
+    }
   }
 
   @override
@@ -38,10 +58,18 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _loadSupportBot() async {
+    final link = await _apiService.getSupportBotLink();
+    if (mounted) setState(() => _supportBotLink = link);
+  }
 
-    setState(() => _isLoading = true);
+  Future<void> _login() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() {
+      _isLoading = true;
+      _errorBanner = null;
+    });
 
     final fullPhone = '998${_phoneController.text.replaceAll(RegExp(r'\D'), '')}';
 
@@ -53,13 +81,27 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (result.success) {
       Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (_) => false);
+    } else if (result.statusCode == 401) {
+      setState(() {
+        _errorBanner = 'Telefon raqam yoki parol noto\'g\'ri.';
+        _infoBanner = null;
+      });
     } else {
       showSnackBar(context, result.message, isError: true);
     }
   }
 
+  Future<void> _openSupport() async {
+    if (_supportBotLink == null) return;
+    final uri = Uri.tryParse(_supportBotLink!);
+    if (uri != null && await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -74,19 +116,25 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 12),
                   Text(
                     AppStrings.appName,
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Avtomobil bozori',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 32),
+
+                  if (_infoBanner != null)
+                    _buildInfoCard(theme, _infoBanner!, isInfo: true),
+                  if (_errorBanner != null)
+                    _buildInfoCard(theme, _errorBanner!, isInfo: false),
+
                   PhoneField(
                     controller: _phoneController,
                     validator: (value) {
@@ -120,10 +168,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       Text(
                         "Hisobingiz yo'qmi? ",
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                       ),
                       GestureDetector(
-                        onTap: () => Navigator.pushNamed(context, AppRoutes.register),
+                        onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.register),
                         child: Text(
                           AppStrings.register,
                           style: TextStyle(
@@ -134,11 +182,101 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
+                  if (_supportBotLink != null) ...[
+                    const SizedBox(height: 20),
+                    _buildSupportLink(theme),
+                  ],
                 ],
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildInfoCard(ThemeData theme, String text, {required bool isInfo}) {
+    final bgColor = isInfo
+        ? const Color(0xFFFFF3E0)
+        : const Color(0xFFFFEBEE);
+    final borderColor = isInfo
+        ? const Color(0xFFFFB74D)
+        : const Color(0xFFEF5350);
+    final iconColor = isInfo
+        ? const Color(0xFFE65100)
+        : const Color(0xFFD32F2F);
+    final icon = isInfo
+        ? PhosphorIconsRegular.info
+        : PhosphorIconsRegular.warningCircle;
+
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: isDark ? borderColor.withValues(alpha: 0.15) : bgColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: borderColor.withValues(alpha: isDark ? 0.4 : 0.5)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          PhosphorIcon(icon, size: 20, color: iconColor),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  text,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    height: 1.4,
+                  ),
+                ),
+                if (_supportBotLink != null) ...[
+                  const SizedBox(height: 6),
+                  GestureDetector(
+                    onTap: _openSupport,
+                    child: Text(
+                      'Parol eslamaysizmi? Supportga yozing',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSupportLink(ThemeData theme) {
+    return GestureDetector(
+      onTap: _openSupport,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PhosphorIcon(
+            PhosphorIconsRegular.telegramLogo,
+            size: 16,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            'Yordam kerakmi?',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
       ),
     );
   }

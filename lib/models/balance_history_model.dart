@@ -18,11 +18,11 @@ class BalanceHistoryModel {
   factory BalanceHistoryModel.fromJson(Map<String, dynamic> json) {
     return BalanceHistoryModel(
       id: json['id'] as int,
-      type: json['type'] as String,
-      amount: (json['amount'] as num).toInt(),
-      balanceAfter: (json['balance_after'] as num).toInt(),
-      description: json['description'] as String,
-      createdAt: json['created_at'] as String,
+      type: json['type'] as String? ?? 'credit',
+      amount: (json['amount'] as num?)?.toInt() ?? 0,
+      balanceAfter: (json['balance_after'] as num?)?.toInt() ?? 0,
+      description: json['description'] as String? ?? '',
+      createdAt: json['created_at'] as String? ?? '',
     );
   }
 

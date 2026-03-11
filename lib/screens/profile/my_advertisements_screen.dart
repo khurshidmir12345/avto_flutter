@@ -98,6 +98,7 @@ class _MyAdvertisementsScreenState extends State<MyAdvertisementsScreen> {
         centerTitle: true,
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'my_ads_fab',
         onPressed: () async {
           final result = await Navigator.pushNamed(context, AppRoutes.createAdvertisement);
           if (result == true) _loadAds();

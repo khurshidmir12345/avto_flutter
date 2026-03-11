@@ -16,7 +16,9 @@ class ConversationModel {
   factory ConversationModel.fromJson(Map<String, dynamic> json) {
     return ConversationModel(
       id: json['id'] as int,
-      otherUser: ChatUserModel.fromJson(json['other_user'] as Map<String, dynamic>),
+      otherUser: json['other_user'] != null
+          ? ChatUserModel.fromJson(json['other_user'] as Map<String, dynamic>)
+          : ChatUserModel(id: 0, name: 'Noma\'lum', phone: ''),
       lastMessage: json['last_message'] != null
           ? MessagePreviewModel.fromJson(json['last_message'] as Map<String, dynamic>)
           : null,
@@ -69,7 +71,7 @@ class MessagePreviewModel {
       id: json['id'] as int,
       body: json['body'] as String?,
       type: json['type'] as String? ?? 'text',
-      senderId: json['sender_id'] as int,
+      senderId: (json['sender_id'] as num?)?.toInt() ?? 0,
       createdAt: json['created_at'] as String?,
     );
   }
