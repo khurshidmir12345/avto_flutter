@@ -178,7 +178,16 @@ class ImageUploadService {
 
       final contentTypes = files.map((f) {
         final ext = f.path.split('.').last.toLowerCase();
-        return ext == 'png' ? 'image/png' : 'image/jpeg';
+        return switch (ext) {
+          'png' => 'image/png',
+          'webp' => 'image/webp',
+          'gif' => 'image/gif',
+          'bmp' => 'image/bmp',
+          'heic' => 'image/heic',
+          'heif' => 'image/heif',
+          'tiff' || 'tif' => 'image/tiff',
+          _ => 'image/jpeg',
+        };
       }).toList();
 
       // 1. Presigned URL lar olish

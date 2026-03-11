@@ -467,10 +467,12 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
               Row(
                 children: [
                   Expanded(
+                    flex: 3,
                     child: DropdownButtonFormField<String>(
                       value: _yoqilgiTuri,
+                      isExpanded: true,
                       decoration: InputDecoration(
-                        labelText: 'Yoqilg\'i turi',
+                        labelText: 'Yoqilg\'i',
                         filled: true,
                         border: OutlineInputBorder(
                             borderRadius:
@@ -479,15 +481,20 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
                       items: ElonOptions.yoqilgiTuri
                           .map((e) => DropdownMenuItem(
                               value: e,
-                              child: Text(ElonOptions.yoqilgiTuriLabels[e] ?? e)))
+                              child: Text(
+                                ElonOptions.yoqilgiTuriLabels[e] ?? e,
+                                overflow: TextOverflow.ellipsis,
+                              )))
                           .toList(),
                       onChanged: (v) => setState(() => _yoqilgiTuri = v ?? 'benzin'),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
+                    flex: 3,
                     child: DropdownButtonFormField<String>(
                       value: _uzatishQutisi,
+                      isExpanded: true,
                       decoration: InputDecoration(
                         labelText: 'Uzatish qutisi',
                         filled: true,
@@ -653,7 +660,9 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
         _imageItems.length < maxImages && !_isUploading;
     const crossAxisCount = 4;
 
-    return Container(
+    return GestureDetector(
+      onTap: (_imageItems.isEmpty && !_isUploading) ? _pickImages : null,
+      child: Container(
       decoration: BoxDecoration(
         color: AppColors.primaryLight.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(AppSizes.borderRadius),
@@ -679,6 +688,7 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
                 return _buildImagePreview(i);
               },
             ),
+    ),
     );
   }
 

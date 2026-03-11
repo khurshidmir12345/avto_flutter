@@ -260,7 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final hasRealAds = _ads.isNotEmpty;
     final items = hasRealAds ? _ads.length : _defaultAds.length;
     final isDark = theme.brightness == Brightness.dark;
-    const bannerHeight = 200.0;
+    const bannerHeight = 180.0;
 
     return Column(
       children: [
