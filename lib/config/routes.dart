@@ -13,7 +13,11 @@ import '../screens/profile/telegram_link_screen.dart';
 import '../screens/profile/balance_topup_screen.dart';
 import '../screens/profile/about_screen.dart';
 import '../screens/profile/my_advertisements_screen.dart';
+import '../screens/profile/blocked_users_screen.dart';
 import '../screens/profile/create_advertisement_screen.dart';
+import '../screens/profile/user_telegram_channels_screen.dart';
+import '../screens/profile/user_telegram_channel_setup_screen.dart';
+import '../screens/profile/favorites_screen.dart';
 
 class AppRoutes {
   static const home = '/';
@@ -31,11 +35,19 @@ class AppRoutes {
   static const about = '/about';
   static const myAdvertisements = '/my-advertisements';
   static const createAdvertisement = '/create-advertisement';
+  static const blockedUsers = '/blocked-users';
+  static const userTelegramChannels = '/user-telegram-channels';
+  static const userTelegramChannelSetup = '/user-telegram-channel-setup';
+  static const favorites = '/favorites';
 
   static Map<String, WidgetBuilder> get routes {
     return {
       authCheck: (context) => const AuthCheckScreen(),
-      home: (context) => const MainScreen(),
+      home: (context) {
+        final args = ModalRoute.of(context)?.settings.arguments;
+        final tab = args is int ? args : null;
+        return MainScreen(initialTab: tab);
+      },
       login: (context) => const LoginScreen(),
       register: (context) => const RegisterScreen(),
       otp: (context) => const OtpScreen(),
@@ -49,6 +61,10 @@ class AppRoutes {
       about: (context) => const AboutScreen(),
       myAdvertisements: (context) => const MyAdvertisementsScreen(),
       createAdvertisement: (context) => const CreateAdvertisementScreen(),
+      blockedUsers: (context) => const BlockedUsersScreen(),
+      userTelegramChannels: (context) => const UserTelegramChannelsScreen(),
+      userTelegramChannelSetup: (context) => const UserTelegramChannelSetupScreen(),
+      favorites: (context) => const FavoritesScreen(),
     };
   }
 }

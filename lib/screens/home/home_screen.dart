@@ -5,8 +5,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/category_model.dart';
 import '../../models/advertisement_model.dart';
+import '../../models/telegram_channel_model.dart';
 import '../../services/categories_service.dart';
 import '../../services/advertisement_service.dart';
+import '../../services/telegram_channel_service.dart';
 import '../../utils/constants.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -24,8 +26,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _categoriesService = CategoriesService();
   final _adService = AdvertisementService();
+  final _channelService = TelegramChannelApiService();
   List<CategoryModel> _categories = [];
   List<AdvertisementModel> _ads = [];
+  List<TelegramChannelModel> _channels = [];
   bool _loading = true;
 
   final ScrollController _adScrollController = ScrollController();
@@ -84,12 +88,14 @@ class _HomeScreenState extends State<HomeScreen> {
     final results = await Future.wait([
       _categoriesService.getCategories(),
       _adService.getActiveAds(),
+      _channelService.getGlobalChannels(),
     ]);
 
     if (mounted) {
       setState(() {
         _categories = results[0] as List<CategoryModel>;
         _ads = results[1] as List<AdvertisementModel>;
+        _channels = results[2] as List<TelegramChannelModel>;
         _loading = false;
       });
       _startAutoScroll();
@@ -246,6 +252,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 .toList(),
                           ),
               ),
+              if (_channels.isNotEmpty) ...[
+                const SizedBox(height: 24),
+                _buildTelegramChannelsSection(theme),
+              ],
               const SizedBox(height: 24),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSizes.paddingMedium),
@@ -479,6 +489,188 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildTelegramChannelsSection(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSizes.paddingMedium),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Telegram Kanallar',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0088CC).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.send_rounded, size: 12, color: const Color(0xFF0088CC)),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Avtomatik',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: const Color(0xFF0088CC),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            "E'lonlar avtomatik ravishda kanallarga joylanadi",
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ..._channels.map((channel) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _buildChannelCard(context, channel, theme),
+              )),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _onChannelTap(TelegramChannelModel channel) async {
+    final uri = Uri.tryParse(channel.link);
+    if (uri != null && await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Widget _buildChannelCard(
+    BuildContext context,
+    TelegramChannelModel channel,
+    ThemeData theme,
+  ) {
+    final isDark = theme.brightness == Brightness.dark;
+    return GestureDetector(
+      onTap: () => _onChannelTap(channel),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: const Color(0xFF0088CC).withValues(alpha: isDark ? 0.2 : 0.12),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: theme.colorScheme.shadow.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF0088CC), Color(0xFF00AAEE)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: channel.avatarUrl != null
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: CachedNetworkImage(
+                        imageUrl: channel.avatarUrl!,
+                        width: 46,
+                        height: 46,
+                        fit: BoxFit.cover,
+                        errorWidget: (_, __, ___) => const Icon(
+                          Icons.send_rounded,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+                      ),
+                    )
+                  : const Icon(Icons.send_rounded, color: Colors.white, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    channel.name,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      if (channel.username != null) ...[
+                        Text(
+                          '@${channel.username}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: const Color(0xFF0088CC),
+                          ),
+                        ),
+                        if (channel.memberCount > 0)
+                          Text(
+                            '  •  ',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                      ],
+                      if (channel.memberCount > 0)
+                        Text(
+                          _formatMemberCount(channel.memberCount),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            PhosphorIcon(
+              PhosphorIconsRegular.arrowSquareOut,
+              size: 18,
+              color: const Color(0xFF0088CC),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatMemberCount(int count) {
+    if (count >= 1000000) {
+      return '${(count / 1000000).toStringAsFixed(1)}M obunachi';
+    } else if (count >= 1000) {
+      return '${(count / 1000).toStringAsFixed(1)}K obunachi';
+    }
+    return '$count obunachi';
   }
 
   Widget _buildCategoryCard(BuildContext context,

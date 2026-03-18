@@ -1,13 +1,17 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../models/conversation_model.dart';
 import '../../models/elon_model.dart';
 import '../../services/chat_service.dart';
 import '../../services/elonlar_service.dart';
+import '../../services/favorite_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/helpers.dart';
+import '../../services/moderation_service.dart';
 import '../../widgets/full_screen_image_viewer.dart';
+import '../../widgets/report_bottom_sheet.dart';
 import '../chat/chat_detail_screen.dart';
 
 class ElonDetailScreen extends StatefulWidget {
@@ -22,15 +26,19 @@ class ElonDetailScreen extends StatefulWidget {
 class _ElonDetailScreenState extends State<ElonDetailScreen> {
   final _elonlarService = ElonlarService();
   final _chatService = ChatService();
+  final _favoriteService = FavoriteService();
   ElonModel? _elon;
   bool _loading = true;
   int _currentImageIndex = 0;
   bool _openingChat = false;
+  bool _isFavorited = false;
+  bool _togglingFavorite = false;
 
   @override
   void initState() {
     super.initState();
     _load();
+    _checkFavorite();
   }
 
   Future<void> _load() async {
@@ -49,6 +57,33 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
         }
       }
     }
+  }
+
+  Future<void> _checkFavorite() async {
+    final result = await _favoriteService.checkFavorite(widget.elonId);
+    if (mounted) setState(() => _isFavorited = result);
+  }
+
+  Future<void> _toggleFavorite() async {
+    if (_togglingFavorite) return;
+    setState(() => _togglingFavorite = true);
+    final result = await _favoriteService.toggle(widget.elonId);
+    if (mounted) {
+      setState(() {
+        _togglingFavorite = false;
+        if (result.success) _isFavorited = result.isFavorited;
+      });
+      showSnackBar(context, result.message, isError: !result.success);
+    }
+  }
+
+  void _shareElon() {
+    if (_elon == null) return;
+    final elon = _elon!;
+    final title = '${elon.marka} ${elon.model ?? ''}'.trim();
+    final text = '$title — ${elon.narxFormatted}\n'
+        '${ApiConstants.imageBaseUrl}/elon/${elon.id}';
+    SharePlus.instance.share(ShareParams(text: text));
   }
 
   @override
@@ -89,6 +124,33 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("E'lon"),
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) => _handleMenuAction(value, elon),
+            itemBuilder: (_) => [
+              const PopupMenuItem(
+                value: 'report',
+                child: ListTile(
+                  leading: Icon(Icons.flag_outlined, color: Colors.orange),
+                  title: Text('Shikoyat qilish'),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              if (elon.userId != null)
+                const PopupMenuItem(
+                  value: 'block',
+                  child: ListTile(
+                    leading: Icon(Icons.block, color: Colors.red),
+                    title: Text('Foydalanuvchini bloklash'),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+            ],
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: _load,
@@ -208,25 +270,68 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
           ),
         ],
       ),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            elon.narxFormatted,
-            style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  elon.narxFormatted,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  '${elon.marka} ${elon.model ?? ''}'.trim(),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            '${elon.marka} ${elon.model ?? ''}'.trim(),
-            style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                  color: theme.colorScheme.onSurface,
-                ),
+          const SizedBox(width: 8),
+          _buildActionButton(
+            icon: _isFavorited
+                ? PhosphorIconsFill.heart
+                : PhosphorIconsRegular.heart,
+            color: _isFavorited ? AppColors.error : theme.colorScheme.onSurfaceVariant,
+            onTap: _togglingFavorite ? null : _toggleFavorite,
+          ),
+          const SizedBox(width: 8),
+          _buildActionButton(
+            icon: PhosphorIconsRegular.shareFat,
+            color: theme.colorScheme.onSurfaceVariant,
+            onTap: _shareElon,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required Color color,
+    VoidCallback? onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: PhosphorIcon(icon, color: color, size: 22),
+        ),
       ),
     );
   }
@@ -289,6 +394,62 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
         ],
       ),
     );
+  }
+
+  void _handleMenuAction(String action, ElonModel elon) {
+    switch (action) {
+      case 'report':
+        ReportBottomSheet.show(
+          context,
+          reportableType: 'elon',
+          reportableId: elon.id,
+          title: "E'longa shikoyat",
+        );
+        break;
+      case 'block':
+        if (elon.userId == null) return;
+        _showBlockConfirmation(elon.userId!, elon.ownerName ?? "E'lon egasi");
+        break;
+    }
+  }
+
+  Future<void> _showBlockConfirmation(int userId, String userName) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Foydalanuvchini bloklash'),
+        content: Text(
+          '"$userName" ni bloklaysizmi?\n\nBloklangan foydalanuvchining e\'lonlari va xabarlari sizga ko\'rinmaydi.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Bekor qilish'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text('Bloklash'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    final result = await ModerationService().blockUser(userId);
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result.message),
+        backgroundColor: result.success ? AppColors.success : AppColors.error,
+      ),
+    );
+
+    if (result.success) {
+      Navigator.pop(context);
+    }
   }
 
   Future<void> _openChat(ElonModel elon) async {

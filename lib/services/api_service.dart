@@ -112,12 +112,6 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final userJson = data['user'] as Map<String, dynamic>;
-        // ignore: avoid_print
-        print(
-          '[ApiService.getCurrentUser] avatar_icon=${userJson['avatar_icon']} | avatar_url=${userJson['avatar_url']} | avat_url=${userJson['avat_url']}',
-        );
-
         final appConfig = data['app_config'] as Map<String, dynamic>?;
         if (appConfig != null) {
           final topupEnabled = appConfig['balance_topup_enabled'] as bool? ?? true;
@@ -211,11 +205,6 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final user = UserModel.fromJson(data['user'] as Map<String, dynamic>);
-        final userJson = data['user'] as Map<String, dynamic>;
-        // ignore: avoid_print
-        print(
-          '[ApiService.uploadAvatar] avatar_icon=${userJson['avatar_icon']} | avatar_url=${userJson['avatar_url']} | avat_url=${userJson['avat_url']}',
-        );
         return (success: true, message: data['message'] as String, user: user);
       }
 

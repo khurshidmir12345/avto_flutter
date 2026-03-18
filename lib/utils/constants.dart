@@ -49,6 +49,11 @@ class AppSizes {
 }
 
 class ApiConstants {
+
+  // static const baseUrl = 'http://localhost:8080/api';
+  // static const imageBaseUrl = 'http://localhost:8080';
+  // static const imageCdnUrl = 'http://localhost:8080';
+  
   static const baseUrl = 'https://avtovodiy.uz/api';
   static const imageBaseUrl = 'https://avtovodiy.uz';
   static const imageCdnUrl = 'https://img.avtovodiy.uz';
@@ -89,6 +94,28 @@ class ApiConstants {
 
   // Support bot
   static const supportBotInfoUrl = '$baseUrl/support/bot-info';
+
+  // Shikoyatlar va Bloklash
+  static const reportsUrl = '$baseUrl/reports';
+  static const myReportsUrl = '$baseUrl/reports/my';
+  static const blockedUsersUrl = '$baseUrl/blocked-users';
+  static String unblockUserUrl(int userId) => '$baseUrl/blocked-users/$userId';
+
+  // Huquqiy sahifalar
+  static const privacyPolicyUrl = '$imageBaseUrl/privacy-policy';
+  static const termsUrl = '$imageBaseUrl/terms';
+
+  // Telegram kanallar
+  static const telegramChannelsUrl = '$baseUrl/telegram-channels';
+  static const userChannelsUrl = '$baseUrl/auth/user-channels';
+  static String userChannelUrl(int id) => '$baseUrl/auth/user-channels/$id';
+  static String userChannelTestUrl(int id) =>
+      '$baseUrl/auth/user-channels/$id/test';
+
+  // Sevimlilar
+  static const favoritesUrl = '$baseUrl/favorites';
+  static const favoritesToggleUrl = '$baseUrl/favorites/toggle';
+  static String favoritesCheckUrl(int elonId) => '$baseUrl/favorites/check/$elonId';
 
   // Reklamalar
   static const advertisementsUrl = '$baseUrl/advertisements';

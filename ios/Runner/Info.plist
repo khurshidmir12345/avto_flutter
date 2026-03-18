@@ -29,10 +29,8 @@
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
-		<true/>
+		<false/>
 	</dict>
-	<key>NSCameraUsageDescription</key>
-	<string>E'lon rasmlarini olish uchun kamera ruxsati kerak</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Ovozli xabar yuborish uchun mikrofon ruxsati kerak</string>
 	<key>NSPhotoLibraryUsageDescription</key>

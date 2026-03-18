@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../models/conversation_model.dart';
 import '../../services/chat_service.dart';
+import '../../services/moderation_service.dart';
 import '../../utils/constants.dart';
+import '../../widgets/report_bottom_sheet.dart';
 import 'chat_detail_screen.dart';
 import 'new_chat_screen.dart';
 
@@ -151,6 +153,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
           ),
         ),
       ).then((_) => _load()),
+      onLongPress: () => _showChatActions(conv),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(
@@ -244,6 +247,100 @@ class _ChatListScreenState extends State<ChatListScreen> {
         ),
       ),
     );
+  }
+
+  void _showChatActions(ConversationModel conv) {
+    final user = conv.otherUser;
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                user.name,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const Icon(Icons.flag_outlined, color: Colors.orange),
+                title: const Text('Shikoyat qilish'),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  ReportBottomSheet.show(
+                    context,
+                    reportableType: 'user',
+                    reportableId: user.id,
+                    title: 'Foydalanuvchiga shikoyat',
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.block, color: Colors.red),
+                title: const Text('Foydalanuvchini bloklash'),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _blockUserFromList(user);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _blockUserFromList(ChatUserModel user) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Foydalanuvchini bloklash'),
+        content: Text(
+          '"${user.name}" ni bloklaysizmi?\n\nBloklangan foydalanuvchi chatlar ro\'yxatidan yo\'qoladi.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Bekor qilish'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text('Bloklash'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    final result = await ModerationService().blockUser(user.id);
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result.message),
+        backgroundColor: result.success ? AppColors.success : AppColors.error,
+      ),
+    );
+
+    if (result.success) _load();
   }
 
   String _formatTime(String iso) {

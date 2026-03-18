@@ -472,6 +472,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 20),
                   _buildTelegramCard(context),
+                  const SizedBox(height: 12),
+                  _buildMenuItem(
+                    context,
+                    icon: PhosphorIconsRegular.megaphoneSimple,
+                    title: 'Telegram Kanal',
+                    subtitle: "Shaxsiy kanalga e'lon yuborish",
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.userTelegramChannels),
+                  ),
                   const SizedBox(height: 16),
                   _buildMenuItem(
                     context,
@@ -493,7 +501,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     title: 'Reklamalar',
                     onTap: () => Navigator.pushNamed(context, AppRoutes.myAdvertisements),
                   ),
-                  _buildMenuItem(context, icon: PhosphorIconsRegular.heart, title: 'Sevimlilar'),
+                  _buildMenuItem(
+                    context,
+                    icon: PhosphorIconsRegular.heart,
+                    title: 'Sevimlilar',
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.favorites),
+                  ),
+                  _buildMenuItem(
+                    context,
+                    icon: PhosphorIconsRegular.prohibit,
+                    title: 'Bloklangan foydalanuvchilar',
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.blockedUsers),
+                  ),
                   _buildMenuItem(
                     context,
                     icon: PhosphorIconsRegular.key,
@@ -629,6 +648,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     BuildContext context, {
     required IconData icon,
     required String title,
+    String? subtitle,
     VoidCallback? onTap,
     bool showBadge = false,
   }) {
@@ -654,6 +674,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
         title: Text(title),
+        subtitle: subtitle != null
+            ? Text(
+                subtitle,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              )
+            : null,
         trailing: PhosphorIcon(PhosphorIconsRegular.caretRight, color: Theme.of(context).colorScheme.onSurfaceVariant),
         onTap: onTap ?? () {},
       ),

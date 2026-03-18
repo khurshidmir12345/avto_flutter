@@ -7,14 +7,16 @@ import 'profile/profile_screen.dart';
 import 'chat/chat_list_screen.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  const MainScreen({super.key, this.initialTab});
+
+  final int? initialTab;
 
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
+  late int _currentIndex;
   int? _selectedCategoryId;
   int _unreadCount = 0;
   final _chatService = ChatService();
@@ -37,6 +39,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+    _currentIndex = widget.initialTab ?? 0;
     _loadUnreadCount();
   }
 

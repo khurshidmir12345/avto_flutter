@@ -12,10 +12,12 @@ import '../../services/api_service.dart';
 import '../../services/chat_service.dart';
 import '../../services/media_cache_service.dart';
 import '../../services/storage_service.dart';
+import '../../services/moderation_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/helpers.dart';
 import '../../widgets/auth_network_image.dart';
 import '../../widgets/full_screen_image_viewer.dart';
+import '../../widgets/report_bottom_sheet.dart';
 
 /// Chat oynasi — matn, rasm, ovozli xabar. Telegram uslubi.
 class ChatDetailScreen extends StatefulWidget {
@@ -43,6 +45,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   bool _loading = true;
   bool _sending = false;
   bool _recording = false;
+  bool _isBlocked = false;
   final _recorder = AudioRecorder();
 
   @override
@@ -90,6 +93,75 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         );
       }
     });
+  }
+
+  void _handleChatMenuAction(String action) {
+    switch (action) {
+      case 'report':
+        ReportBottomSheet.show(
+          context,
+          reportableType: 'user',
+          reportableId: widget.otherUser.id,
+          title: 'Foydalanuvchiga shikoyat',
+        );
+        break;
+      case 'block':
+        _isBlocked ? _unblockUser() : _blockUser();
+        break;
+    }
+  }
+
+  Future<void> _blockUser() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Foydalanuvchini bloklash'),
+        content: Text(
+          '"${widget.otherUser.name}" ni bloklaysizmi?\n\nBloklangan foydalanuvchiga xabar yubora olmaysiz.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Bekor qilish'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text('Bloklash'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    final result = await ModerationService().blockUser(widget.otherUser.id);
+    if (!mounted) return;
+
+    if (result.success) {
+      setState(() => _isBlocked = true);
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result.message),
+        backgroundColor: result.success ? AppColors.success : AppColors.error,
+      ),
+    );
+  }
+
+  Future<void> _unblockUser() async {
+    final result = await ModerationService().unblockUser(widget.otherUser.id);
+    if (!mounted) return;
+
+    if (result.success) {
+      setState(() => _isBlocked = false);
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result.message),
+        backgroundColor: result.success ? AppColors.success : AppColors.error,
+      ),
+    );
   }
 
   Future<void> _sendText() async {
@@ -213,6 +285,35 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             ),
           ],
         ),
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: _handleChatMenuAction,
+            itemBuilder: (_) => [
+              const PopupMenuItem(
+                value: 'report',
+                child: ListTile(
+                  leading: Icon(Icons.flag_outlined, color: Colors.orange),
+                  title: Text('Shikoyat qilish'),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              PopupMenuItem(
+                value: 'block',
+                child: ListTile(
+                  leading: Icon(
+                    _isBlocked ? Icons.check_circle_outline : Icons.block,
+                    color: _isBlocked ? Colors.green : Colors.red,
+                  ),
+                  title: Text(_isBlocked ? 'Blokdan chiqarish' : 'Bloklash'),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -235,7 +336,38 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         itemBuilder: (_, i) => _messageBubble(_messages[i], _currentUserId ?? 0),
                       ),
           ),
-          _buildInputBar(),
+          _isBlocked ? _buildBlockedBanner() : _buildInputBar(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBlockedBanner() {
+    return Container(
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 12,
+        bottom: 12 + MediaQuery.of(context).padding.bottom,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.error.withValues(alpha: 0.08),
+        border: Border(top: BorderSide(color: AppColors.error.withValues(alpha: 0.2))),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.block, color: AppColors.error, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Bu foydalanuvchi bloklangan',
+              style: TextStyle(color: AppColors.error, fontSize: 14),
+            ),
+          ),
+          TextButton(
+            onPressed: _unblockUser,
+            child: Text('Blokdan chiqarish', style: TextStyle(color: AppColors.primary)),
+          ),
         ],
       ),
     );
@@ -581,7 +713,7 @@ class _VoiceMessagePlayerState extends State<_VoiceMessagePlayer> {
       _sourceSet = true;
       if (mounted) setState(() => _loading = false);
     } catch (e) {
-      debugPrint('VoicePlayer error: $e | url=${widget.url}');
+      // VoicePlayer error silently handled
       if (mounted) setState(() { _loading = false; _error = true; });
     }
   }

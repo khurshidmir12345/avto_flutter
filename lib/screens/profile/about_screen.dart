@@ -76,6 +76,8 @@ class AboutScreen extends StatelessWidget {
                   "bog'laning. Biz sizga yordam berishdan xursandmiz!",
             ),
             const SizedBox(height: 14),
+            _buildLegalSection(context, theme),
+            const SizedBox(height: 14),
             _buildContactCard(context, theme),
             const SizedBox(height: 32),
           ],
@@ -196,6 +198,101 @@ class AboutScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildLegalSection(BuildContext context, ThemeData theme) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppSizes.borderRadius),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.shadow.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              PhosphorIcon(PhosphorIconsRegular.shield, size: 20, color: AppColors.primary),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Huquqiy ma\'lumotlar',
+                  style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildLegalLink(
+            context,
+            theme,
+            icon: PhosphorIconsRegular.fileText,
+            title: 'Maxfiylik siyosati',
+            url: ApiConstants.privacyPolicyUrl,
+          ),
+          const SizedBox(height: 8),
+          _buildLegalLink(
+            context,
+            theme,
+            icon: PhosphorIconsRegular.scales,
+            title: 'Foydalanish shartlari',
+            url: ApiConstants.termsUrl,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLegalLink(
+    BuildContext context,
+    ThemeData theme, {
+    required IconData icon,
+    required String title,
+    required String url,
+  }) {
+    return InkWell(
+      onTap: () => _openUrl(url),
+      borderRadius: BorderRadius.circular(10),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        child: Row(
+          children: [
+            PhosphorIcon(icon, size: 18, color: AppColors.primary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            PhosphorIcon(
+              PhosphorIconsRegular.arrowSquareOut,
+              size: 16,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri != null && await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   Widget _buildContactCard(BuildContext context, ThemeData theme) {

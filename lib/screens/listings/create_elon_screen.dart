@@ -322,7 +322,7 @@ class _CreateElonScreenState extends State<CreateElonScreen> {
     }
 
     showSnackBar(context, result.message);
-    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (_) => false);
+    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (_) => false, arguments: 1);
   }
 
   @override
