@@ -5,6 +5,7 @@ import '../../config/routes.dart';
 import '../../models/elon_model.dart';
 import '../../services/elonlar_service.dart';
 import '../../utils/constants.dart';
+import '../../utils/helpers.dart';
 import 'elon_detail_screen.dart';
 
 class ListingsScreen extends StatefulWidget {
@@ -239,6 +240,11 @@ class _ListingsScreenState extends State<ListingsScreen> {
       floatingActionButton: FloatingActionButton(
         heroTag: 'listings_fab',
         onPressed: () async {
+          final authed = await requireAuth(
+            context,
+            message: "E'lon yaratish uchun hisobingizga kiring.",
+          );
+          if (!authed || !mounted) return;
           await Navigator.pushNamed(context, AppRoutes.createElon);
           _loadInitial();
         },

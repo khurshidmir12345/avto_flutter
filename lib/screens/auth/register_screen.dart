@@ -24,6 +24,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _apiService = ApiService();
   bool _isLoading = false;
+  bool _termsAccepted = false;
   String? _supportBotLink;
 
   void _onPasswordChanged() => setState(() {});
@@ -189,13 +190,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                   ),
 
-                  const SizedBox(height: 12),
-                  _buildPolicyText(theme),
+                  const SizedBox(height: 16),
+                  _buildEulaCheckbox(theme),
                   const SizedBox(height: 16),
                   CustomButton(
                     text: AppStrings.register,
                     onPressed: _passwordController.text.length >= 8 &&
-                            _passwordConfirmController.text.length >= 8
+                            _passwordConfirmController.text.length >= 8 &&
+                            _termsAccepted
                         ? _register
                         : null,
                     isLoading: _isLoading,
@@ -233,54 +235,78 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildPolicyText(ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Text.rich(
-        TextSpan(
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-            height: 1.5,
-          ),
+  Widget _buildEulaCheckbox(ThemeData theme) {
+    return InkWell(
+      onTap: () => setState(() => _termsAccepted = !_termsAccepted),
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const TextSpan(text: "Ro'yxatdan o'tish orqali siz "),
-            WidgetSpan(
-              alignment: PlaceholderAlignment.baseline,
-              baseline: TextBaseline.alphabetic,
-              child: GestureDetector(
-                onTap: () => _openUrl(ApiConstants.termsUrl),
-                child: Text(
-                  'Foydalanish shartlari',
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: Checkbox(
+                value: _termsAccepted,
+                onChanged: (v) => setState(() => _termsAccepted = v ?? false),
+                activeColor: AppColors.primary,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text.rich(
+                TextSpan(
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                    decoration: TextDecoration.underline,
-                    decorationColor: AppColors.primary,
+                    color: theme.colorScheme.onSurfaceVariant,
+                    height: 1.5,
                   ),
+                  children: [
+                    const TextSpan(text: "Men "),
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.baseline,
+                      baseline: TextBaseline.alphabetic,
+                      child: GestureDetector(
+                        onTap: () => _openUrl(ApiConstants.termsUrl),
+                        child: Text(
+                          'Foydalanish shartlari (EULA)',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                            decoration: TextDecoration.underline,
+                            decorationColor: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const TextSpan(text: ' va '),
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.baseline,
+                      baseline: TextBaseline.alphabetic,
+                      child: GestureDetector(
+                        onTap: () => _openUrl(ApiConstants.privacyPolicyUrl),
+                        child: Text(
+                          'Maxfiylik siyosati',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                            decoration: TextDecoration.underline,
+                            decorationColor: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const TextSpan(
+                      text: "ni o'qidim va qabul qilaman. "
+                          "Nojo'ya kontent yoki suiiste'mol qilish uchun hisob bloklanadi.",
+                    ),
+                  ],
                 ),
               ),
             ),
-            const TextSpan(text: ' va '),
-            WidgetSpan(
-              alignment: PlaceholderAlignment.baseline,
-              baseline: TextBaseline.alphabetic,
-              child: GestureDetector(
-                onTap: () => _openUrl(ApiConstants.privacyPolicyUrl),
-                child: Text(
-                  'Maxfiylik siyosati',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                    decoration: TextDecoration.underline,
-                    decorationColor: AppColors.primary,
-                  ),
-                ),
-              ),
-            ),
-            const TextSpan(text: 'ni qabul qilgan bo\'lasiz.'),
           ],
         ),
-        textAlign: TextAlign.center,
       ),
     );
   }

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../config/routes.dart';
+import '../services/storage_service.dart';
+import 'constants.dart';
 
 void showSnackBar(BuildContext context, String message,
     {bool isError = false, Duration duration = const Duration(seconds: 2)}) {
@@ -57,6 +61,98 @@ String formatBalanceHistoryDate(String iso) {
   } catch (_) {
     return iso;
   }
+}
+
+Future<bool> isLoggedIn() async {
+  final token = await StorageService.getToken();
+  return token != null && token.isNotEmpty;
+}
+
+Future<bool> requireAuth(BuildContext context, {String? message}) async {
+  if (await isLoggedIn()) return true;
+  if (!context.mounted) return false;
+
+  final result = await showDialog<bool>(
+    context: context,
+    builder: (ctx) {
+      final theme = Theme.of(ctx);
+      return AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: PhosphorIcon(
+                PhosphorIconsRegular.userPlus,
+                size: 32,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              "Ro'yxatdan o'ting",
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message ?? "Bu funksiyadan foydalanish uchun ro'yxatdan o'ting.",
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Keyinroq'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text("Ro'yxatdan o'tish"),
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    },
+  );
+
+  if (result == true && context.mounted) {
+    Navigator.pushNamed(context, AppRoutes.register);
+  }
+  return false;
 }
 
 Future<void> launchPhone(String phone) async {

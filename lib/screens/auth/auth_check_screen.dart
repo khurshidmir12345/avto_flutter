@@ -3,8 +3,6 @@ import '../../config/routes.dart';
 import '../../services/api_service.dart';
 import '../../services/storage_service.dart';
 
-/// Ilova ochilganda token mavjudligini tekshiradi.
-/// Token saqlangan va haqiqiy bo'lsa — Home, aks holda — Register.
 class AuthCheckScreen extends StatefulWidget {
   const AuthCheckScreen({super.key});
 
@@ -21,12 +19,12 @@ class _AuthCheckScreenState extends State<AuthCheckScreen> {
 
   Future<void> _checkAuth() async {
     await Future.delayed(const Duration(milliseconds: 300));
-
     if (!mounted) return;
 
     final token = await StorageService.getToken();
+
     if (token == null || token.isEmpty) {
-      _navigateToRegister();
+      Navigator.pushReplacementNamed(context, AppRoutes.home);
       return;
     }
 
@@ -37,12 +35,8 @@ class _AuthCheckScreenState extends State<AuthCheckScreen> {
       Navigator.pushReplacementNamed(context, AppRoutes.home);
     } else {
       await StorageService.deleteToken();
-      _navigateToRegister();
+      Navigator.pushReplacementNamed(context, AppRoutes.home);
     }
-  }
-
-  void _navigateToRegister() {
-    Navigator.pushReplacementNamed(context, AppRoutes.register);
   }
 
   @override

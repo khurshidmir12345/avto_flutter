@@ -7,8 +7,10 @@ import '../../models/elon_model.dart';
 import '../../services/chat_service.dart';
 import '../../services/elonlar_service.dart';
 import '../../services/favorite_service.dart';
+import '../../services/storage_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/helpers.dart';
+import '../../services/analytics_service.dart';
 import '../../services/moderation_service.dart';
 import '../../widgets/full_screen_image_viewer.dart';
 import '../../widgets/report_bottom_sheet.dart';
@@ -34,11 +36,20 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
   bool _isFavorited = false;
   bool _togglingFavorite = false;
 
+  bool _isGuest = true;
+
   @override
   void initState() {
     super.initState();
     _load();
-    _checkFavorite();
+    _initAuth();
+    AnalyticsService().trackPageView('elon_detail');
+  }
+
+  Future<void> _initAuth() async {
+    final loggedIn = await isLoggedIn();
+    if (mounted) setState(() => _isGuest = !loggedIn);
+    if (loggedIn) _checkFavorite();
   }
 
   Future<void> _load() async {
@@ -65,6 +76,10 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
   }
 
   Future<void> _toggleFavorite() async {
+    if (_isGuest) {
+      await requireAuth(context, message: 'Sevimlilar uchun hisobingizga kiring.');
+      return;
+    }
     if (_togglingFavorite) return;
     setState(() => _togglingFavorite = true);
     final result = await _favoriteService.toggle(widget.elonId);
@@ -396,7 +411,11 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
     );
   }
 
-  void _handleMenuAction(String action, ElonModel elon) {
+  Future<void> _handleMenuAction(String action, ElonModel elon) async {
+    if (_isGuest) {
+      await requireAuth(context, message: 'Bu funksiya uchun hisobingizga kiring.');
+      return;
+    }
     switch (action) {
       case 'report':
         ReportBottomSheet.show(
@@ -453,6 +472,10 @@ class _ElonDetailScreenState extends State<ElonDetailScreen> {
   }
 
   Future<void> _openChat(ElonModel elon) async {
+    if (_isGuest) {
+      await requireAuth(context, message: 'Xabar yozish uchun hisobingizga kiring.');
+      return;
+    }
     final userId = elon.userId;
     if (userId == null || _openingChat) return;
 

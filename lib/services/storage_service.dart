@@ -14,6 +14,7 @@ class StorageService {
   static const _themeIdKey = 'theme_id';
   static const _darkModeKey = 'dark_mode';
   static const _balanceTopupEnabledKey = 'balance_topup_enabled';
+  static const _deviceIdKey = 'device_id';
 
   static Future<void> saveToken(String token) async {
     await _storage.write(key: _tokenKey, value: token);
@@ -79,5 +80,20 @@ class StorageService {
   static Future<bool> getBalanceTopupEnabled() async {
     final v = await _storage.read(key: _balanceTopupEnabledKey);
     return v != 'false';
+  }
+
+  static Future<String> getOrCreateDeviceId() async {
+    var id = await _storage.read(key: _deviceIdKey);
+    if (id == null || id.isEmpty) {
+      id = _generateUuid();
+      await _storage.write(key: _deviceIdKey, value: id);
+    }
+    return id;
+  }
+
+  static String _generateUuid() {
+    final random = DateTime.now().microsecondsSinceEpoch;
+    final hex = random.toRadixString(16).padLeft(16, '0');
+    return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-4${hex.substring(13, 16)}-a${hex.substring(0, 3)}-${DateTime.now().millisecondsSinceEpoch.toRadixString(16).padLeft(12, '0')}';
   }
 }

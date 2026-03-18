@@ -338,6 +338,31 @@ class ApiService {
     }
   }
 
+  // DELETE /api/auth/profile
+  Future<({bool success, String message})> deleteAccount() async {
+    try {
+      final headers = await _authHeaders();
+      final response = await http.delete(
+        Uri.parse(ApiConstants.deleteProfileUrl),
+        headers: headers,
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        await StorageService.clearAuthData();
+        return (success: true, message: data['message'] as String);
+      }
+
+      return (
+        success: false,
+        message: data['message'] as String? ?? 'Xatolik yuz berdi',
+      );
+    } catch (e) {
+      return (success: false, message: 'Serverga ulanib bo\'lmadi');
+    }
+  }
+
   // POST /api/auth/logout
   Future<bool> logout() async {
     try {

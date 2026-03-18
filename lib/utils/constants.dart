@@ -122,6 +122,12 @@ class ApiConstants {
   static const advertisementsPriceUrl = '$baseUrl/advertisements/price';
   static const advertisementsMyUrl = '$baseUrl/advertisements/my';
   static const advertisementsPresignedUrl = '$baseUrl/advertisements/presigned-url';
+
+  // Hisobni o'chirish
+  static const deleteProfileUrl = '$baseUrl/auth/profile';
+
+  // Analitika
+  static const pageViewsUrl = '$baseUrl/page-views';
 }
 
 /// Bir e'lon uchun maksimal rasm soni
