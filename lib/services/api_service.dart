@@ -118,7 +118,7 @@ class ApiService {
           await StorageService.saveBalanceTopupEnabled(topupEnabled);
         }
 
-        return UserModel.fromJson(userJson);
+        return UserModel.fromJson(data['user']);
       }
     } catch (_) {}
 
